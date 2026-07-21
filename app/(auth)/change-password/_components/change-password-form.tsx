@@ -8,7 +8,8 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 
-import { Button } from "@/components/ui/button"
+import { PasswordRequirements } from "@/app/(auth)/_components/password-requirements"
+import { AuthSubmitButton } from "@/app/(auth)/_components/auth-submit-button"
 import {
   Card,
   CardContent,
@@ -49,11 +50,11 @@ function AuthCardShell({ children }: { children: React.ReactNode }) {
 function ChangePasswordHeader() {
   return (
     <CardHeader className="items-center gap-2 border-b-0 px-8 pt-8 pb-0 text-center">
-      <CardTitle className="text-xl font-bold text-brand-text-heading">
+      <CardTitle className="text-3xl text-brand-text-heading">
         Change Password
       </CardTitle>
-      <p className="text-sm text-brand-text-muted">
-        Set a new password for your account to continue.
+      <p className="text-xs text-brand-text-muted">
+        Choose a new password to secure your CanvasFlow account and continue.
       </p>
     </CardHeader>
   )
@@ -215,6 +216,8 @@ export function ChangePasswordForm() {
     },
   })
 
+  const passwordValue = form.watch("password")
+
   const changePasswordMutation = useMutation({
     mutationFn: (data: ChangePasswordInput) =>
       apiClient<ChangePasswordResponse>("/api/auth/change-password", {
@@ -294,6 +297,7 @@ export function ChangePasswordForm() {
               aria-invalid={!!form.formState.errors.password}
               {...form.register("password")}
             />
+            <PasswordRequirements password={passwordValue} />
             <FieldError errors={[form.formState.errors.password]} />
           </Field>
 
@@ -340,14 +344,11 @@ export function ChangePasswordForm() {
             </p>
           )}
 
-          <Button
-            type="submit"
-            disabled={changePasswordMutation.isPending}
-            className="h-11 w-full bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary/90"
-          >
-            Login and Continue
-            <ArrowRight aria-hidden />
-          </Button>
+          <AuthSubmitButton
+            pending={changePasswordMutation.isPending}
+            label="Login and Continue"
+            icon={<ArrowRight aria-hidden />}
+          />
         </form>
       </CardContent>
 

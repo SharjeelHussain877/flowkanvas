@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 
-import { Button } from "@/components/ui/button"
+import { AuthSubmitButton } from "@/app/(auth)/_components/auth-submit-button"
 import {
   Card,
   CardContent,
@@ -30,9 +30,14 @@ import {
 export interface LoginFormProps {
   defaultEmail?: string
   authError?: string
+  authNotice?: string
 }
 
-export function LoginForm({ defaultEmail = "", authError }: LoginFormProps) {
+export function LoginForm({
+  defaultEmail = "",
+  authError,
+  authNotice,
+}: LoginFormProps) {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
 
@@ -87,11 +92,11 @@ export function LoginForm({ defaultEmail = "", authError }: LoginFormProps) {
         }}
       />
       <CardHeader className="items-center gap-2 border-b-0 px-8 pt-8 pb-0 text-center">
-        <CardTitle className="text-xl font-bold text-brand-text-heading">
+        <CardTitle className="text-3xl text-brand-text-heading">
           Login your account
         </CardTitle>
-        <p className="text-sm text-brand-text-muted">
-          Sign in to monitor, configure, and secure your network.
+        <p className="text-xs text-brand-text-muted">
+          Sign in to manage your PDF templates and generate documents via API.
         </p>
       </CardHeader>
 
@@ -101,6 +106,15 @@ export function LoginForm({ defaultEmail = "", authError }: LoginFormProps) {
           className="flex flex-col gap-5"
           noValidate
         >
+          {authNotice && (
+            <p
+              role="status"
+              className="rounded-lg bg-brand-primary/10 px-3 py-2 text-sm text-brand-primary"
+            >
+              {authNotice}
+            </p>
+          )}
+
           {authError && (
             <p role="alert" className="text-sm text-destructive">
               {authError}
@@ -176,23 +190,11 @@ export function LoginForm({ defaultEmail = "", authError }: LoginFormProps) {
             </p>
           )}
 
-          {loginMutation.isSuccess && (
-            <p
-              role="status"
-              className="rounded-lg bg-brand-primary/10 px-3 py-2 text-sm text-brand-primary"
-            >
-              {loginMutation.data.message}
-            </p>
-          )}
-
-          <Button
-            type="submit"
-            disabled={loginMutation.isPending}
-            className="h-11 w-full bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary/90"
-          >
-            Login
-            <ArrowRight aria-hidden />
-          </Button>
+          <AuthSubmitButton
+            pending={loginMutation.isPending}
+            label="Login"
+            icon={<ArrowRight aria-hidden />}
+          />
         </form>
       </CardContent>
 

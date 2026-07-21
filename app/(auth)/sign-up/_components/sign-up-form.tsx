@@ -4,11 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import { ArrowRight, AtSign, Eye, EyeOff, Lock, UserRound } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 
-import { PasswordStrengthIndicator } from "@/app/(auth)/sign-up/_components/password-strength-indicator"
-import { Button } from "@/components/ui/button"
+import { PasswordRequirements } from "@/app/(auth)/_components/password-requirements"
+import { AuthSubmitButton } from "@/app/(auth)/_components/auth-submit-button"
 import {
   Card,
   CardContent,
@@ -31,6 +32,7 @@ export interface SignUpFormProps {
 }
 
 export function SignUpForm({ defaultEmail = "" }: SignUpFormProps) {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm<SignUpInput>({
@@ -51,8 +53,17 @@ export function SignUpForm({ defaultEmail = "" }: SignUpFormProps) {
         method: "POST",
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       form.clearErrors("root")
+
+      if (data.needsEmailConfirmation) {
+        const loginHref = buildAuthHref("/login", variables.email)
+        const separator = loginHref.includes("?") ? "&" : "?"
+        router.push(`${loginHref}${separator}notice=confirm_email`)
+        return
+      }
+
+      router.push("/dashboard")
     },
     onError: (error) => {
       if (error instanceof ApiError && error.code === "EMAIL_ALREADY_EXISTS") {
@@ -82,11 +93,12 @@ export function SignUpForm({ defaultEmail = "" }: SignUpFormProps) {
         }}
       />
       <CardHeader className="items-center gap-2 border-b-0 px-8 pt-8 pb-0 text-center">
-        <CardTitle className="text-xl font-bold text-brand-text-heading">
+        <CardTitle className="text-3xl text-brand-text-heading">
           Create your account
         </CardTitle>
-        <p className="text-sm text-brand-text-muted">
-          Create your administrative credentials to begin deployment.
+        <p className="text-xs text-brand-text-muted">
+          Create an account to build PDF templates and integrate document
+          generation into your apps.
         </p>
       </CardHeader>
 
@@ -164,7 +176,7 @@ export function SignUpForm({ defaultEmail = "" }: SignUpFormProps) {
               aria-invalid={!!form.formState.errors.password}
               {...form.register("password")}
             />
-            <PasswordStrengthIndicator password={passwordValue} />
+            <PasswordRequirements password={passwordValue} />
             <FieldError errors={[form.formState.errors.password]} />
           </Field>
 
@@ -174,23 +186,11 @@ export function SignUpForm({ defaultEmail = "" }: SignUpFormProps) {
             </p>
           )}
 
-          {signUpMutation.isSuccess && (
-            <p
-              role="status"
-              className="rounded-lg bg-brand-primary/10 px-3 py-2 text-sm text-brand-primary"
-            >
-              {signUpMutation.data.message}
-            </p>
-          )}
-
-          <Button
-            type="submit"
-            disabled={signUpMutation.isPending}
-            className="h-11 w-full bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary/90"
-          >
-            Create Account
-            <ArrowRight aria-hidden />
-          </Button>
+          <AuthSubmitButton
+            pending={signUpMutation.isPending}
+            label="Create Account"
+            icon={<ArrowRight aria-hidden />}
+          />
         </form>
       </CardContent>
 

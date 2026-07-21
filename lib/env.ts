@@ -1,3 +1,5 @@
+import { authConfirmPath, defaultAuthenticatedPath } from "@/lib/auth/routes"
+
 function requireEnv(name: string): string {
   const value = process.env[name]
   if (!value) {
@@ -30,9 +32,22 @@ export function getSiteUrl(): string {
   return "http://localhost:3000"
 }
 
+export function getEmailVerifyRedirectPath(): string {
+  const configured = process.env.NEXT_PUBLIC_EMAIL_VERIFY_REDIRECT?.trim()
+  if (configured?.startsWith("/")) {
+    return configured
+  }
+  return defaultAuthenticatedPath
+}
+
+/** Email verify callback - add `${getSiteUrl()}${authConfirmPath}` to Supabase Redirect URLs. */
+export function getEmailVerificationCallbackUrl(): string {
+  return getAuthConfirmUrl(getEmailVerifyRedirectPath())
+}
+
 export function getAuthConfirmUrl(next: string): string {
   const params = new URLSearchParams({ next })
-  return `${getSiteUrl()}/api/auth/confirm?${params.toString()}`
+  return `${getSiteUrl()}${authConfirmPath}?${params.toString()}`
 }
 
 export function getPasswordRecoveryConfirmUrl(): string {

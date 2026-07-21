@@ -7,12 +7,27 @@ function Input({
   type,
   startIcon,
   endIcon,
+  onChange,
+  autoCapitalize,
+  autoCorrect,
+  spellCheck,
+  readOnly,
   ...props
 }: React.ComponentProps<"input"> & {
   startIcon?: React.ReactNode
   endIcon?: React.ReactNode
 }) {
   const hasIcons = startIcon || endIcon
+  const isEmailInput = type === "email"
+  const usesChangeHandler = (isEmailInput || onChange) && !readOnly
+
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    if (isEmailInput) {
+      event.target.value = event.target.value.toLowerCase()
+    }
+
+    onChange?.(event)
+  }
 
   const input = (
     <input
@@ -25,6 +40,15 @@ function Input({
         !hasIcons && "px-3",
         className
       )}
+      {...(usesChangeHandler
+        ? {
+            onChange: handleChange,
+          }
+        : {})}
+      readOnly={readOnly}
+      autoCapitalize={isEmailInput ? "none" : autoCapitalize}
+      autoCorrect={isEmailInput ? "off" : autoCorrect}
+      spellCheck={isEmailInput ? false : spellCheck}
       {...props}
     />
   )

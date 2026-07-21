@@ -9,6 +9,29 @@ import {
 } from "@/lib/auth/routes"
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env"
 
+const AUTH_LOOKUP_TIMEOUT_MS = 8_000
+
+async function getAuthenticatedUser(
+  supabase: ReturnType<typeof createServerClient>
+) {
+  try {
+    const result = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<null>((resolve) =>
+        setTimeout(() => resolve(null), AUTH_LOOKUP_TIMEOUT_MS)
+      ),
+    ])
+
+    if (result === null) {
+      return null
+    }
+
+    return result.data.user
+  } catch {
+    return null
+  }
+}
+
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -29,9 +52,7 @@ export async function proxy(request: NextRequest) {
     },
   })
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getAuthenticatedUser(supabase)
 
   const { pathname } = request.nextUrl
   const isChangePasswordRoute =

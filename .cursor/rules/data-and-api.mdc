@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Data Layer
 
-## Supabase — server only
+## Supabase - server only
 
 ```typescript
 // ❌ NEVER in client components or 'use client' files
@@ -46,7 +46,7 @@ export async function getUsers() { /* supabase query */ }
 
 ## Generic fetch client
 
-All client-side API calls go through `lib/api/client.ts` — never raw `fetch()` scattered in components.
+All client-side API calls go through `lib/api/client.ts` - never raw `fetch()` scattered in components.
 
 ```typescript
 // lib/api/client.ts

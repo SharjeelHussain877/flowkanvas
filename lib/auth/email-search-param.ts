@@ -1,5 +1,5 @@
 export function buildAuthHref(path: string, email?: string): string {
-  const trimmed = email?.trim()
+  const trimmed = email?.trim().toLowerCase()
   if (!trimmed) {
     return path
   }
@@ -12,11 +12,11 @@ export function getEmailFromSearchParam(
   email: string | string[] | undefined
 ): string {
   if (typeof email === "string") {
-    return email.trim()
+    return email.trim().toLowerCase()
   }
 
   if (Array.isArray(email)) {
-    return email[0]?.trim() ?? ""
+    return email[0]?.trim().toLowerCase() ?? ""
   }
 
   return ""

@@ -9,14 +9,14 @@ alwaysApply: false
 ## Rules
 
 - Forms: shadcn `<Form>` + `react-hook-form` + `@hookform/resolvers/zod`.
-- Every form field validated via Zod — no manual validation in handlers.
+- Every form field validated via Zod - no manual validation in handlers.
 - Same schema used in API route AND frontend form.
 
 ## Schema location
 
 ```
 schemas/
-  generic/          # Reusable primitives — import everywhere
+  generic/          # Reusable primitives - import everywhere
     strings.ts      # nonEmptyString, optionalString, etc.
     numbers.ts      # positiveNumber, optionalNumber, etc.
     common.ts       # email, personName, phone, etc.
@@ -53,5 +53,5 @@ if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() },
 
 ```typescript
 const form = useForm({ resolver: zodResolver(loginSchema), defaultValues: { ... } })
-// Submit via useMutation — NOT useState for loading/error
+// Submit via useMutation - NOT useState for loading/error
 ```

@@ -1,5 +1,5 @@
 import type { SignUpInput, SignUpResponse } from "@/schemas/auth/sign-up"
-import { getAuthConfirmUrl } from "@/lib/env"
+import { getEmailVerificationCallbackUrl } from "@/lib/env"
 import { createClient } from "@/lib/supabase/server"
 import { mapSupabaseAuthError, AuthServiceError } from "@/lib/services/auth/errors"
 
@@ -13,7 +13,7 @@ export async function signUpUser(input: SignUpInput): Promise<SignUpResponse> {
       data: {
         full_name: input.fullName,
       },
-      emailRedirectTo: getAuthConfirmUrl("/dashboard"),
+      emailRedirectTo: getEmailVerificationCallbackUrl(),
     },
   })
 
@@ -36,5 +36,6 @@ export async function signUpUser(input: SignUpInput): Promise<SignUpResponse> {
     message: needsEmailConfirmation
       ? "Please check your email to confirm your account"
       : "Account created successfully",
+    needsEmailConfirmation,
   }
 }

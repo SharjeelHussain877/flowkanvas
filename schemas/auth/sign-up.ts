@@ -15,4 +15,5 @@ export type SignUpInput = z.infer<typeof signUpSchema>
 export type SignUpResponse = {
   success: true
   message: string
+  needsEmailConfirmation: boolean
 }

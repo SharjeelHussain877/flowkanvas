@@ -1,7 +1,8 @@
 import { z } from "zod"
 
-export const emailField = z
-  .string()
+import { requiredString } from "@/schemas/generic/required-string"
+
+export const emailField = requiredString("Email is required")
   .trim()
-  .min(1, "Email is required")
+  .toLowerCase()
   .email("Enter a valid email address")

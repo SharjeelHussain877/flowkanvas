@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, AtSign } from "lucide-react"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
 
-import { Button } from "@/components/ui/button"
+import { AuthSubmitButton } from "@/app/(auth)/_components/auth-submit-button"
 import {
   Card,
   CardContent,
@@ -80,11 +80,11 @@ export function ForgetPasswordForm({
       />
 
       <CardHeader className="items-center gap-2 border-b-0 px-8 pt-8 pb-0 text-center">
-        <CardTitle className="text-xl font-bold text-brand-text-heading">
+        <CardTitle className="text-3xl text-brand-text-heading">
           Forgot Password
         </CardTitle>
-        <p className="text-sm text-brand-text-muted">
-          Enter your email address and we&apos;ll send you a link to reset your
+        <p className="text-xs text-brand-text-muted">
+          Enter your account email and we&apos;ll send a link to reset your
           password.
         </p>
       </CardHeader>
@@ -129,14 +129,11 @@ export function ForgetPasswordForm({
             </p>
           )}
 
-          <Button
-            type="submit"
-            disabled={resetMutation.isPending}
-            className="h-11 w-full bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary/90"
-          >
-            Send Reset Link
-            <ArrowRight aria-hidden />
-          </Button>
+          <AuthSubmitButton
+            pending={resetMutation.isPending}
+            label="Send Reset Link"
+            icon={<ArrowRight aria-hidden />}
+          />
         </form>
       </CardContent>
 

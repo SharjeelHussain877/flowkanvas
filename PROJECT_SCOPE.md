@@ -1,4 +1,4 @@
-# PDF Template Generator SaaS — Project Scope
+# PDF Template Generator SaaS - Project Scope
 
 > **Web-based platform** jahan users apne custom PDF templates create karein, dynamic variables define karein, aur API ke through on-demand PDF generate karein.
 
@@ -41,7 +41,7 @@ Ek **PDF Template Generator SaaS** jahan:
 
 - User apna account banata hai (email + OTP ya Google).
 - Dashboard se **maximum 100 PDF templates** create / edit / delete kar sakta hai.
-- Har template me user **apni marzi ke dynamic variables** use karta hai — jaise `{{name}}`, `{{company}}`, `{{salary}}` — koi fixed field list nahi.
+- Har template me user **apni marzi ke dynamic variables** use karta hai - jaise `{{name}}`, `{{company}}`, `{{salary}}` - koi fixed field list nahi.
 - Template save hone ke baad user **API key generate** karta hai.
 - External client `FormData` (`form.append`) ke through variable values bhej kar **PDF response** receive karta hai.
 
@@ -64,7 +64,7 @@ Ek **PDF Template Generator SaaS** jahan:
 | Auth | Supabase Auth (email/password, Google OAuth, OTP) |
 | Database | Supabase PostgreSQL |
 | Client data | TanStack React Query |
-| PDF engine | TBD — `@react-pdf/renderer`, Puppeteer, or pdf-lib (implementation phase) |
+| PDF engine | TBD - `@react-pdf/renderer`, Puppeteer, or pdf-lib (implementation phase) |
 | API auth | Per-user API key (hashed in DB) |
 
 ---
@@ -101,17 +101,17 @@ Receive Generated PDF
 
 **Route:** `/` (public)
 
-Ek **simple, clean marketing page** — sirf product introduce karne ke liye. Login ke baad yahan redirect nahi hoga; authenticated users `/dashboard` par jayenge.
+Ek **simple, clean marketing page** - sirf product introduce karne ke liye. Login ke baad yahan redirect nahi hoga; authenticated users `/dashboard` par jayenge.
 
 ### Sections
 
 | Section | Content |
 |---------|---------|
 | Hero | Product tagline, primary CTA (Sign Up), secondary CTA (Login) |
-| Product introduction | Kya karta hai platform — templates, variables, API PDF |
+| Product introduction | Kya karta hai platform - templates, variables, API PDF |
 | Features | Template editor, dynamic variables, API keys, auto docs |
-| Pricing | Optional — placeholder ya “Coming soon” |
-| Contact | Optional — email / form link |
+| Pricing | Optional - placeholder ya “Coming soon” |
+| Contact | Optional - email / form link |
 | Footer | Login · Sign Up links |
 
 ### CTAs
@@ -119,7 +119,7 @@ Ek **simple, clean marketing page** — sirf product introduce karne ke liye. Lo
 - **Login** → `/login`
 - **Sign Up** → `/sign-up`
 
-> **Note:** Root `/` ab redirect-only nahi hoga — proper landing page banegi.
+> **Note:** Root `/` ab redirect-only nahi hoga - proper landing page banegi.
 
 ---
 
@@ -168,7 +168,7 @@ Supabase Auth based. Existing auth routes extend honge.
 | `(auth)/*` | Logged-in user → redirect `/dashboard` |
 | `(protected)/*` | Guest → redirect `/login` |
 | Unverified email user | Block protected routes → redirect `/verify-otp` |
-| `/` landing | Public — everyone |
+| `/` landing | Public - everyone |
 
 ---
 
@@ -183,7 +183,7 @@ Login ke baad user ka home.
 | Section | Description |
 |---------|-------------|
 | Stats cards | Total templates count, API key status (active / not generated) |
-| Recent templates | Last 5–10 templates — name, updated date, quick actions |
+| Recent templates | Last 5–10 templates - name, updated date, quick actions |
 | Quick actions | **Create Template** button (primary) |
 | Navigation | Templates list, API keys, settings |
 
@@ -204,7 +204,7 @@ Agar koi template nahi: illustration + “Create your first template” CTA.
 | Create template | New blank template → editor |
 | Edit template | Open existing in editor |
 | Delete template | Confirm dialog → soft or hard delete |
-| Duplicate template | Optional v1 — copy template + variables |
+| Duplicate template | Optional v1 - copy template + variables |
 | Preview template | Read-only render with sample / empty variables |
 | View API docs | Per-template documentation page |
 
@@ -221,7 +221,7 @@ Agar koi template nahi: illustration + “Create your first template” CTA.
 | `id` | UUID |
 | `user_id` | Owner |
 | `name` | User-given template name |
-| `content` | Template body (HTML / structured JSON — editor decision) |
+| `content` | Template body (HTML / structured JSON - editor decision) |
 | `created_at` | Timestamp |
 | `updated_at` | Timestamp |
 
@@ -236,7 +236,7 @@ Sabse important feature.
 ### Editor capabilities
 
 - Rich text / block-based layout for PDF content.
-- User `{{variable_name}}` syntax type kar sake — autocomplete optional.
+- User `{{variable_name}}` syntax type kar sake - autocomplete optional.
 - Live list of detected variables (sidebar).
 - Save + Save & Preview buttons.
 
@@ -256,7 +256,7 @@ Variables auto-detected: `customer_name`, `invoice_number`, `date`, `amount`.
 ### Editor UX requirements
 
 - Variable syntax highlight (optional v1).
-- Invalid variable names warn karein (e.g. spaces, special chars) — allow `[a-zA-Z0-9_]` only.
+- Invalid variable names warn karein (e.g. spaces, special chars) - allow `[a-zA-Z0-9_]` only.
 - Unsaved changes warning on navigate away.
 
 ---
@@ -274,7 +274,7 @@ Variables auto-detected: `customer_name`, `invoice_number`, `date`, `amount`.
 
 ### Valid variable name
 
-- Pattern: `{{snake_case_or_camel}}` — alphanumeric + underscore.
+- Pattern: `{{snake_case_or_camel}}` - alphanumeric + underscore.
 - Examples: `{{name}}`, `{{company}}`, `{{employee_id}}`, `{{salary}}`, `{{order_number}}`.
 
 ### Storage
@@ -289,13 +289,13 @@ Parsed variable names template ke saath store (`variables: string[]`) taake API 
 
 ### Purpose
 
-Sirf structure verify karna — layout sahi hai ya nahi.
+Sirf structure verify karna - layout sahi hai ya nahi.
 
 ### Behaviour
 
 - Template render with placeholder values (e.g. `[customer_name]`) ya user-entered sample values.
-- PDF preview in browser (iframe / new tab) — implementation detail.
-- Preview **API key require nahi karta** — session auth sufficient.
+- PDF preview in browser (iframe / new tab) - implementation detail.
+- Preview **API key require nahi karta** - session auth sufficient.
 
 ---
 
@@ -303,13 +303,13 @@ Sirf structure verify karna — layout sahi hai ya nahi.
 
 **Route:** `/dashboard/api-keys` (protected)
 
-Har user **ek active API key** (v1 — regenerate replaces previous).
+Har user **ek active API key** (v1 - regenerate replaces previous).
 
 ### Features
 
 | Action | Description |
 |--------|-------------|
-| Generate API Key | First time — show key once (copy prompt) |
+| Generate API Key | First time - show key once (copy prompt) |
 | View API Key | Masked display (`pk_****...abc`) |
 | Regenerate API Key | Old key invalidate → new key |
 | Copy API Key | Clipboard button |
@@ -317,7 +317,7 @@ Har user **ek active API key** (v1 — regenerate replaces previous).
 ### Security
 
 - Key format: `pk_live_<random>` (prefix TBD).
-- **Hashed storage** in DB — plain key sirf generate/regenerate par ek baar dikhe.
+- **Hashed storage** in DB - plain key sirf generate/regenerate par ek baar dikhe.
 - Har PDF generation request me key required.
 - Invalid / missing key → `401 Unauthorized`.
 
@@ -342,7 +342,7 @@ Har template ke liye **automatically generated** documentation.
 | Example response | `200` → `application/pdf` binary |
 | Error codes | 401, 404, 422 table |
 
-User ko manually payload likhne ki zarurat nahi — system template se derive kare.
+User ko manually payload likhne ki zarurat nahi - system template se derive kare.
 
 ---
 
@@ -397,7 +397,7 @@ form.append("phone", "+1234567890");
 | Part | Value |
 |------|-------|
 | Header | `X-API-Key: pk_live_...` |
-| Body | `multipart/form-data` — one field per variable |
+| Body | `multipart/form-data` - one field per variable |
 
 ### Example
 
@@ -425,8 +425,8 @@ salary=120000
 
 ### Constraints
 
-- **FormData only** for v1 — no JSON body for variable payload.
-- Extra unknown fields → ignore ya warn (TBD — recommend ignore).
+- **FormData only** for v1 - no JSON body for variable payload.
+- Extra unknown fields → ignore ya warn (TBD - recommend ignore).
 - Missing required variable → `422 Missing Required Variables`.
 
 ---
@@ -650,7 +650,7 @@ Supabase PostgreSQL tables (draft).
 
 ## 20. Implementation Phases
 
-### Phase 1 — Foundation
+### Phase 1 - Foundation
 
 - [ ] Landing page (`/`)
 - [ ] Google OAuth sign-up / login
@@ -658,21 +658,21 @@ Supabase PostgreSQL tables (draft).
 - [ ] Profile name update
 - [ ] Dashboard shell + navigation
 
-### Phase 2 — Templates
+### Phase 2 - Templates
 
 - [ ] Template CRUD (100 limit enforced)
 - [ ] Template editor with `{{variable}}` parsing
 - [ ] Variable list sidebar + live payload example
 - [ ] Template preview
 
-### Phase 3 — API & PDF
+### Phase 3 - API & PDF
 
 - [ ] API key generate / regenerate / copy
 - [ ] Auto-generated docs page per template
 - [ ] PDF generation endpoint (FormData → PDF)
 - [ ] Variable injection + validation
 
-### Phase 4 — Polish
+### Phase 4 - Polish
 
 - [ ] Error handling completeness
 - [ ] Rate limiting (OTP + API)
@@ -696,7 +696,7 @@ Supabase PostgreSQL tables (draft).
 
 ---
 
-## Appendix — Variable Parsing Regex (draft)
+## Appendix - Variable Parsing Regex (draft)
 
 ```regex
 /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g
@@ -706,7 +706,7 @@ Extract unique capture groups → store as `variables[]` → drive docs payload 
 
 ---
 
-## Appendix — Existing Codebase Alignment
+## Appendix - Existing Codebase Alignment
 
 Already implemented (reuse / extend):
 
