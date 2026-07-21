@@ -26,6 +26,7 @@
 ## Changelog
 
 ### 2026-07-21
+- Landing page: unified section spacing tokens (`py-16 sm:py-20 lg:py-24`, shared container/grid/body gaps); fixed horizontal scroll; trust bar bullets stack in a column on mobile.
 - Dashboard layout: shadcn sidebar shell in `(protected)/layout.tsx` - memoized client sidebar persists across navigations; only page content swaps.
 - Dashboard pages (static UI): Requests, Projects, template detail, Settings (General, Profile, Security), Generate API Key.
 - Sidebar menu: Requests, collapsible Projects + Recents (24 draft templates), Settings submenu in footer.

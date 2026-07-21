@@ -194,6 +194,25 @@ function scrollToSection(id: string) {
 const displayHeading =
   "font-serif font-normal tracking-tight text-foreground";
 
+const landingSection = "scroll-mt-20 py-16 sm:py-20 lg:py-24";
+
+const landingContainer =
+  "mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8";
+
+const landingContainerNarrow =
+  "mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8";
+
+const landingIntro = "mx-auto max-w-2xl text-center";
+
+const landingIntroLead = "mt-3 text-muted-foreground";
+
+const landingBody = "mt-10 sm:mt-12";
+
+const landingGrid = "grid gap-4 sm:gap-6";
+
+const landingHeroGrid =
+  "grid gap-8 sm:gap-10 lg:grid-cols-2 lg:items-center lg:gap-12";
+
 const cardHoverText =
   "transition-colors duration-300 hover:bg-primary hover:[&_[data-slot=card-title]]:bg-transparent hover:[&_[data-slot=card-title]]:text-primary-foreground hover:[&_[data-slot=card-description]]:bg-transparent hover:[&_[data-slot=card-description]]:text-primary-foreground/90 hover:[&_[data-slot=card-header]_span]:text-primary-foreground/70 hover:[&_.card-icon]:bg-primary-foreground/15 hover:[&_.card-icon]:text-primary-foreground";
 
@@ -351,7 +370,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative min-h-full bg-[#f7f8fa] font-sans text-foreground [&_[data-slot=button]]:rounded-none [&_[data-slot=card]]:rounded-none">
+    <div className="relative min-h-full overflow-x-clip bg-[#f7f8fa] font-sans text-foreground [&_[data-slot=button]]:rounded-none [&_[data-slot=card]]:rounded-none">
       <div
         className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
         aria-hidden="true"
@@ -470,8 +489,8 @@ export default function Home() {
 
       <main className="pt-16">
         {/* SECTION 2 - HERO */}
-        <section className="relative">
-          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-8 lg:py-28">
+        <section className={cn("relative", landingSection)}>
+          <div className={cn(landingContainer, landingHeroGrid)}>
             <div className="max-w-xl">
               <p className="mb-4 inline-flex items-center gap-2 rounded-none bg-white/70 px-3 py-1 text-xs font-medium text-muted-foreground shadow-[0_4px_20px_rgb(17_23_42_/_0.06)] backdrop-blur-md">
                 <Zap className="size-3.5 text-primary" aria-hidden="true" />
@@ -509,7 +528,7 @@ export default function Home() {
             </div>
 
             {/* Product preview */}
-            <div className="relative w-full lg:justify-self-end">
+            <div className="relative w-full overflow-hidden lg:justify-self-end">
               <div
                 className="pointer-events-none absolute -inset-8 rounded-none bg-primary/14 blur-3xl"
                 aria-hidden="true"
@@ -602,9 +621,12 @@ export default function Home() {
           forceVisible={forcedSections.has("trust-bar")}
           placeholderClassName="min-h-[72px]"
         >
-        <section aria-label="Product highlights" className="bg-white">
-          <div className="mx-auto max-w-6xl border-y border-border/50 px-4 py-6 sm:px-6 lg:px-8">
-            <ul className="flex flex-wrap items-center justify-center gap-y-3">
+        <section
+          aria-label="Product highlights"
+          className={cn("bg-white", landingSection)}
+        >
+          <div className={cn(landingContainer)}>
+            <ul className="flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-y-3">
               {trustHighlights.map((item, index) => (
                 <li key={item} className="flex items-center justify-center">
                   <span className="flex items-center gap-2 px-4 text-sm font-medium text-foreground sm:px-6">
@@ -635,21 +657,24 @@ export default function Home() {
           forceVisible={forcedSections.has("how-it-works")}
           placeholderClassName="min-h-[640px]"
         >
-        <section
-          id="how-it-works"
-          className="scroll-mt-20 py-20 sm:py-24"
-        >
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
+        <section id="how-it-works" className={landingSection}>
+          <div className={landingContainer}>
+            <div className={landingIntro}>
               <h2 className={cn(displayHeading, "text-3xl sm:text-4xl")}>
                 How It Works
               </h2>
-              <p className="mt-3 text-muted-foreground">
+              <p className={landingIntroLead}>
                 From template to PDF in four straightforward steps.
               </p>
             </div>
 
-            <div className="relative mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+              className={cn(
+                "relative sm:grid-cols-2 lg:grid-cols-4",
+                landingBody,
+                landingGrid
+              )}
+            >
               <div
                 className="pointer-events-none absolute top-12 hidden h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent lg:block lg:w-[calc(100%-8rem)] lg:translate-x-16"
                 aria-hidden="true"
@@ -686,22 +711,19 @@ export default function Home() {
           forceVisible={forcedSections.has("features")}
           placeholderClassName="min-h-[560px]"
         >
-        <section
-          id="features"
-          className="scroll-mt-20 py-20 sm:py-24"
-        >
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
+        <section id="features" className={landingSection}>
+          <div className={landingContainer}>
+            <div className={landingIntro}>
               <h2 className={cn(displayHeading, "text-3xl sm:text-4xl")}>
                 Everything you need to ship PDF generation
               </h2>
-              <p className="mt-3 text-muted-foreground">
+              <p className={landingIntroLead}>
                 A focused toolkit for teams that treat documents as part of
                 their product infrastructure.
               </p>
             </div>
 
-            <div className="mt-14 grid gap-6 sm:grid-cols-2">
+            <div className={cn("sm:grid-cols-2", landingBody, landingGrid)}>
               {features.map((feature) => (
                 <Card key={feature.title} className={premiumCardSoft}>
                   <CardHeader>
@@ -729,22 +751,25 @@ export default function Home() {
           forceVisible={forcedSections.has("demo")}
           placeholderClassName="min-h-[520px]"
         >
-        <section
-          id="demo"
-          className="scroll-mt-20 py-20 sm:py-24"
-        >
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
+        <section id="demo" className={landingSection}>
+          <div className={landingContainer}>
+            <div className={landingIntro}>
               <h2 className={cn(displayHeading, "text-3xl sm:text-4xl")}>
                 Template to PDF in one request
               </h2>
-              <p className="mt-3 text-muted-foreground">
+              <p className={landingIntroLead}>
                 See how variables flow from your template through the API to the
                 final document.
               </p>
             </div>
 
-            <div className="relative mt-14 grid gap-6 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-stretch lg:gap-5">
+            <div
+              className={cn(
+                "relative lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-stretch",
+                landingBody,
+                landingGrid
+              )}
+            >
               <div
                 className="pointer-events-none absolute inset-x-0 top-1/2 hidden h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-primary/15 to-transparent lg:block"
                 aria-hidden="true"
@@ -867,9 +892,14 @@ export default function Home() {
           forceVisible={forcedSections.has("developer-api")}
           placeholderClassName="min-h-[520px]"
         >
-        <section className="relative py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="grid min-w-0 gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
+        <section className={cn("relative", landingSection)}>
+          <div className={landingContainer}>
+            <div
+              className={cn(
+                "grid min-w-0 lg:grid-cols-2 lg:items-center",
+                landingGrid
+              )}
+            >
               <div className="min-w-0">
                 <p className="mb-3 text-sm font-medium text-primary">
                   Developer API
@@ -877,12 +907,12 @@ export default function Home() {
                 <h2 className={cn(displayHeading, "text-3xl sm:text-4xl")}>
                   Integrate in minutes, not days
                 </h2>
-                <p className="mt-3 text-muted-foreground">
+                <p className={landingIntroLead}>
                   Send FormData with your variable values. Receive a PDF. No
                   SDK required - works with any HTTP client.
                 </p>
 
-                <ul className="mt-8 space-y-4">
+                <ul className={cn(landingBody, "space-y-4")}>
                   {apiBenefits.map((benefit) => (
                     <li key={benefit.label} className="flex items-start gap-3">
                       <div className="flex size-8 shrink-0 items-center justify-center rounded-none bg-primary/10 text-primary">
@@ -997,18 +1027,24 @@ export default function Home() {
           forceVisible={forcedSections.has("use-cases")}
           placeholderClassName="min-h-[480px]"
         >
-        <section className="py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
+        <section className={landingSection}>
+          <div className={landingContainer}>
+            <div className={landingIntro}>
               <h2 className={cn(displayHeading, "text-3xl sm:text-4xl")}>
                 Built for document-heavy workflows
               </h2>
-              <p className="mt-3 text-muted-foreground">
+              <p className={landingIntroLead}>
                 One API for every PDF your product needs to generate.
               </p>
             </div>
 
-            <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              className={cn(
+                "sm:grid-cols-2 lg:grid-cols-3",
+                landingBody,
+                landingGrid
+              )}
+            >
               {useCases.map((useCase) => (
                 <Card key={useCase.title} className={premiumCardSoft}>
                   <CardHeader>
@@ -1036,21 +1072,18 @@ export default function Home() {
           forceVisible={forcedSections.has("faq")}
           placeholderClassName="min-h-[480px]"
         >
-        <section
-          id="faq"
-          className="scroll-mt-20 py-20 sm:py-24"
-        >
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <section id="faq" className={landingSection}>
+          <div className={landingContainerNarrow}>
             <div className="text-center">
               <h2 className={cn(displayHeading, "text-3xl sm:text-4xl")}>
                 Frequently asked questions
               </h2>
-              <p className="mt-3 text-muted-foreground">
+              <p className={landingIntroLead}>
                 Everything you need to know before you integrate.
               </p>
             </div>
 
-            <div className="mt-12 space-y-3">
+            <div className={cn(landingBody, "space-y-3")}>
               {faqItems.map((item, index) => {
                 const isOpen = openFaq === index;
                 return (
@@ -1104,15 +1137,20 @@ export default function Home() {
           forceVisible={forcedSections.has("final-cta")}
           placeholderClassName="min-h-[320px]"
         >
-        <section className="py-20 sm:py-28">
-          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+        <section className={landingSection}>
+          <div className={cn(landingContainerNarrow, "text-center")}>
             <h2 className={cn(displayHeading, "text-3xl sm:text-4xl")}>
               Start Generating PDFs Programmatically
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
+            <p className={cn(landingIntroLead, "text-lg")}>
               Build once. Generate unlimited documents through a simple API.
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div
+              className={cn(
+                "flex flex-col items-center justify-center gap-3 sm:flex-row",
+                landingBody
+              )}
+            >
               <Button size="lg" className="h-10 min-w-[160px] px-5" asChild>
                 <Link href="/sign-up">Create Account</Link>
               </Button>
@@ -1136,7 +1174,7 @@ export default function Home() {
         forceVisible={forcedSections.has("footer")}
         placeholderClassName="min-h-[12rem]"
       >
-      <footer className="w-full overflow-hidden py-16 sm:py-24 lg:py-28">
+      <footer className={cn("w-full overflow-hidden", landingSection)}>
         <Link
           href="/"
           className="block w-full select-none px-4 sm:px-6 lg:px-8"
@@ -1149,7 +1187,7 @@ export default function Home() {
             )}
           >
             <span className="text-foreground">flow</span>
-            <span className="text-primary">kanvas</span>
+            <span className="text-primary">Kanvas</span>
           </p>
         </Link>
       </footer>
