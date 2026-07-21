@@ -29,7 +29,7 @@ export default function SettingsProfilePage() {
           <div className="flex items-center gap-4">
             <Avatar className="size-14">
               <AvatarFallback className="bg-brand-teal/15 text-brand-teal">
-                CF
+                FK
               </AvatarFallback>
             </Avatar>
             <Button variant="outline" disabled>
@@ -40,11 +40,11 @@ export default function SettingsProfilePage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="first-name">First name</Label>
-              <Input id="first-name" defaultValue="Canvas" readOnly />
+              <Input id="first-name" defaultValue="flow" readOnly />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="last-name">Last name</Label>
-              <Input id="last-name" defaultValue="Flow" readOnly />
+              <Input id="last-name" defaultValue="kanvas" readOnly />
             </div>
           </div>
 
@@ -53,7 +53,7 @@ export default function SettingsProfilePage() {
             <Input
               id="email"
               type="email"
-              defaultValue="builder@canvasflow.app"
+              defaultValue="builder@flowkanvas.app"
               readOnly
             />
           </div>

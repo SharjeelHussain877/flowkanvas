@@ -62,7 +62,7 @@ export function DashboardLogoutButton() {
 
             <DialogHeader className="items-center gap-2 space-y-0 text-center">
               <DialogTitle className="text-lg font-semibold text-brand-text-heading">
-                Log out of CanvasFlow?
+                Log out of flowkanvas?
               </DialogTitle>
               <DialogDescription className="mx-auto max-w-[18rem] text-balance leading-relaxed">
                 We&apos;ll miss you! We will be waiting for you to sign back in

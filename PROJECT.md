@@ -1,4 +1,4 @@
-# CanvasFlow
+# flowkanvas
 
 ## Element registry
 
@@ -45,7 +45,7 @@
 - Auth group: home-style typography mix - `font-sans` body, `font-serif` card titles + italic tagline accent.
 - Auth layout: larger center-aligned header logo (`h-16`, `max-w-[18rem]`).
 - Dashboard pages: back arrow + title in one row, serif page titles, Open Sans via `font-sans` on shell + global `--font-sans`.
-- Dashboard back arrow: hidden on direct sidebar routes (Requests, Projects); shown on nested/dropdown pages only.
+- Rebrand: project name `CanvasFlow` → `flowkanvas` across UI, docs, and package metadata.
 - Auth header tagline: smaller sans (`text-xs`), tighter width + line-height.
 - Brand palette in `globals.css`: navy `#11172a`, slate `#626c7d`, teal `#599692`, mist `#dfe5ec` - mapped to shadcn + brand tokens app-wide.
 - Email inputs auto-lowercase on type (Input) and on validate (Zod `emailField` + search param helpers).

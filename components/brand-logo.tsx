@@ -17,7 +17,7 @@ export function BrandLogo({
     return (
       <Image
         src="/logosquare.png"
-        alt="CanvasFlow"
+        alt="flowkanvas"
         width={48}
         height={48}
         className={cn("size-full object-contain", className)}
@@ -29,7 +29,7 @@ export function BrandLogo({
   return (
     <Image
       src="/logo.png"
-      alt="CanvasFlow"
+      alt="flowkanvas"
       width={400}
       height={100}
       className={cn("size-full object-contain object-left", className)}

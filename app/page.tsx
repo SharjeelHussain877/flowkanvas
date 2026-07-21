@@ -383,7 +383,7 @@ export default function Home() {
             <Link
               href="/"
               className="flex items-center transition-opacity hover:opacity-80"
-              aria-label="CanvasFlow home"
+              aria-label="flowkanvas home"
             >
               <BrandLogo priority className="h-8 max-w-[10rem] sm:h-9 sm:max-w-[11rem]" />
             </Link>
@@ -1140,7 +1140,7 @@ export default function Home() {
         <Link
           href="/"
           className="block w-full select-none px-4 sm:px-6 lg:px-8"
-          aria-label="CanvasFlow home"
+          aria-label="flowkanvas home"
         >
           <p
             className={cn(
@@ -1148,8 +1148,8 @@ export default function Home() {
               "w-full text-center text-[clamp(4rem,18vw,13rem)] leading-[0.85] tracking-tighter transition-opacity hover:opacity-90"
             )}
           >
-            <span className="text-foreground">Canvas</span>
-            <span className="text-primary">Flow</span>
+            <span className="text-foreground">flow</span>
+            <span className="text-primary">kanvas</span>
           </p>
         </Link>
       </footer>

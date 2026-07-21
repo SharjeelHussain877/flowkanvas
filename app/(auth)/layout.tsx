@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <Link
           href="/"
           className="flex flex-col items-center gap-2 transition-opacity hover:opacity-80"
-          aria-label="CanvasFlow home"
+          aria-label="flowkanvas home"
         >
           <BrandLogo priority className="mx-auto h-16 max-w-[18rem] object-center" />
           <p className="max-w-xs text-center text-xs leading-relaxed text-brand-text-muted">

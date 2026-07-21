@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CanvasFlow",
+  title: "flowkanvas",
   description: "Create PDF templates and generate documents via API",
 };
 

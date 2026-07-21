@@ -74,12 +74,12 @@ export default function SettingsApiKeyPage() {
           <CardHeader>
             <CardTitle>Usage snippet</CardTitle>
             <CardDescription>
-              Example request using your CanvasFlow API key.
+              Example request using your flowkanvas API key.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <pre className="overflow-x-auto rounded-xl bg-brand-navy p-4 text-xs text-brand-mist">
-              {`curl -X POST https://api.canvasflow.app/v1/generate \\
+              {`curl -X POST https://api.flowkanvas.app/v1/generate \\
   -H "Authorization: Bearer ${MOCK_API_KEY}" \\
   -H "Content-Type: application/json" \\
   -d '{"template":"01_template","payload":{"name":"Ayesha"}}'`}

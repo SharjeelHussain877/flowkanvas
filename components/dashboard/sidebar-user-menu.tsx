@@ -29,9 +29,9 @@ import { cn } from "@/lib/utils"
 import { dashboardSettingsNav } from "@/lib/dashboard/routes"
 
 const mockUser = {
-  name: "Canvas Flow",
-  email: "builder@canvasflow.app",
-  initials: "CF",
+  name: "flowkanvas",
+  email: "builder@flowkanvas.app",
+  initials: "FK",
 } as const
 
 const settingsIcons = {

@@ -100,13 +100,13 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* CanvasFlow palette */
+  /* flowkanvas palette */
   --brand-navy: #11172a;
   --brand-slate: #626c7d;
   --brand-teal: #599692;
   --brand-mist: #dfe5ec;
 
-  /* CanvasFlow brand - mapped from palette above */
+  /* flowkanvas brand - mapped from palette above */
   --brand-primary: var(--brand-teal);
   --brand-primary-foreground: #ffffff;
   --brand-background: var(--brand-mist);

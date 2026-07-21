@@ -54,7 +54,7 @@ function ChangePasswordHeader() {
         Change Password
       </CardTitle>
       <p className="text-xs text-brand-text-muted">
-        Choose a new password to secure your CanvasFlow account and continue.
+        Choose a new password to secure your flowkanvas account and continue.
       </p>
     </CardHeader>
   )

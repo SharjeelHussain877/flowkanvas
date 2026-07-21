@@ -29,7 +29,7 @@ export default function SettingsGeneralPage() {
             <Label htmlFor="workspace-name">Workspace name</Label>
             <Input
               id="workspace-name"
-              defaultValue="CanvasFlow Studio"
+              defaultValue="flowkanvas Studio"
               readOnly
             />
           </div>
