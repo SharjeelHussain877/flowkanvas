@@ -1,7 +1,8 @@
 export const dashboardRoutes = {
   home: "/dashboard",
   requests: "/dashboard/requests",
-  projects: "/dashboard/projects",
+  templates: "/dashboard/templates",
+  templateNew: "/dashboard/templates/new",
   template: (slug: string) => `/dashboard/templates/${slug}`,
   settings: {
     general: "/dashboard/settings",
@@ -12,7 +13,7 @@ export const dashboardRoutes = {
 /** Top-level sidebar nav links - no page back arrow on these routes. */
 export const dashboardDirectSidebarRoutes = [
   dashboardRoutes.requests,
-  dashboardRoutes.projects,
+  dashboardRoutes.templates,
 ] as const
 
 export const dashboardSettingsNav = [

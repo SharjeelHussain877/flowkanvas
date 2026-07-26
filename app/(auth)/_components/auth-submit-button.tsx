@@ -3,6 +3,9 @@ import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
+export const authPrimaryButtonClassName =
+  "h-11 bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary/90"
+
 export interface AuthSubmitButtonProps {
   pending: boolean
   label: string
@@ -21,10 +24,7 @@ export function AuthSubmitButton({
       type="submit"
       disabled={pending}
       aria-busy={pending}
-      className={cn(
-        "h-11 w-full bg-brand-primary text-brand-primary-foreground hover:bg-brand-primary/90",
-        className
-      )}
+      className={cn(authPrimaryButtonClassName, "w-full", className)}
     >
       {label}
       {pending ? (

@@ -1,29 +1,36 @@
+export type TemplateStatus = "draft" | "saved"
+
 export type DashboardTemplate = {
   slug: string
   title: string
   updatedAt: string
+  status: TemplateStatus
 }
 
-export const savedProjectTemplates: DashboardTemplate[] = [
+export const savedTemplates: DashboardTemplate[] = [
   {
     slug: "invoice-v2",
     title: "Invoice Template",
     updatedAt: "2 hours ago",
+    status: "saved",
   },
   {
     slug: "contract-nda",
     title: "Contract NDA",
     updatedAt: "Yesterday",
+    status: "saved",
   },
   {
     slug: "offer-letter",
     title: "Offer Letter",
     updatedAt: "3 days ago",
+    status: "saved",
   },
   {
     slug: "shipping-label",
     title: "Shipping Label",
     updatedAt: "1 week ago",
+    status: "saved",
   },
 ]
 
@@ -38,9 +45,17 @@ export const recentDraftTemplates: DashboardTemplate[] = Array.from(
       slug: `${number}-template`,
       title: `${number}_template`,
       updatedAt: index === 0 ? "Just now" : `${index + 1}h ago`,
+      status: "draft",
     }
   }
 )
+
+export function findTemplateBySlug(slug: string): DashboardTemplate | undefined {
+  return (
+    savedTemplates.find((item) => item.slug === slug) ??
+    recentDraftTemplates.find((item) => item.slug === slug)
+  )
+}
 
 export const mockRequests = [
   {

@@ -2,8 +2,8 @@
 
 import {
   ChevronDown,
-  FolderKanban,
   History,
+  LayoutTemplate,
   Workflow,
 } from "lucide-react"
 import Link from "next/link"
@@ -72,8 +72,8 @@ function AppSidebarComponent() {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
+      <SidebarContent className="overflow-hidden">
+        <SidebarGroup className="shrink-0">
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -85,31 +85,35 @@ function AppSidebarComponent() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarNavLink
-                  href={dashboardRoutes.projects}
-                  title="Projects"
-                  icon={<FolderKanban />}
+                  href={dashboardRoutes.templates}
+                  title="Templates"
+                  icon={<LayoutTemplate />}
                 />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator />
+        <SidebarSeparator className="shrink-0" />
 
-        <ScrollArea className="flex-1 [&>[data-slot=scroll-area-viewport]>div]:!block">
-          <SidebarGroup className="py-0">
-            <Collapsible open={recentsOpen} onOpenChange={setRecentsOpen}>
-              <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-2">
-                  <History className="size-4 shrink-0" />
-                  <span className="flex-1 truncate text-start">Recents</span>
-                  <ChevronDown className="size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <p className="px-2 pb-1 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-                All drafts template
-              </p>
-              <CollapsibleContent>
+        <SidebarGroup className="flex min-h-0 flex-1 flex-col py-0">
+          <Collapsible
+            open={recentsOpen}
+            onOpenChange={setRecentsOpen}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <SidebarGroupLabel asChild className="shrink-0">
+              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-2">
+                <History className="size-4 shrink-0" />
+                <span className="flex-1 truncate text-start">Recents</span>
+                <ChevronDown className="size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <p className="shrink-0 px-2 pb-1 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+              All drafts template
+            </p>
+            <CollapsibleContent className="min-h-0 flex-1 overflow-hidden">
+              <ScrollArea className="h-full [&>[data-slot=scroll-area-viewport]>div]:!block">
                 <SidebarGroupContent>
                   <SidebarMenu>
                     <SidebarMenuSub>
@@ -125,10 +129,10 @@ function AppSidebarComponent() {
                     </SidebarMenuSub>
                   </SidebarMenu>
                 </SidebarGroupContent>
-              </CollapsibleContent>
-            </Collapsible>
-          </SidebarGroup>
-        </ScrollArea>
+              </ScrollArea>
+            </CollapsibleContent>
+          </Collapsible>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">

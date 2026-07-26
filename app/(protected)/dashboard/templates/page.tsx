@@ -1,7 +1,10 @@
-import { LayoutTemplate } from "lucide-react"
+import { LayoutTemplate, Plus } from "lucide-react"
+import Link from "next/link"
 
+import { authPrimaryButtonClassName } from "@/app/(auth)/_components/auth-submit-button"
 import { DashboardPage } from "@/components/dashboard/dashboard-page"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -9,18 +12,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { savedProjectTemplates } from "@/lib/dashboard/mock-data"
+import { savedTemplates } from "@/lib/dashboard/mock-data"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
-import Link from "next/link"
+import { cn } from "@/lib/utils"
 
-export default function ProjectsPage() {
+export default function TemplatesPage() {
   return (
     <DashboardPage
-      title="Projects"
+      title="Templates"
       description="All saved templates in your workspace."
+      action={
+        <Button asChild className={cn(authPrimaryButtonClassName, "px-4")}>
+          <Link href={dashboardRoutes.templateNew}>
+            Create Template
+            <Plus className="size-4" aria-hidden />
+          </Link>
+        </Button>
+      }
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {savedProjectTemplates.map((template) => (
+        {savedTemplates.map((template) => (
           <Link
             key={template.slug}
             href={dashboardRoutes.template(template.slug)}
@@ -32,7 +43,7 @@ export default function ProjectsPage() {
                   <div className="flex size-10 items-center justify-center rounded-lg bg-brand-teal/10 text-brand-teal">
                     <LayoutTemplate className="size-5" />
                   </div>
-                  <Badge variant="secondary">Saved</Badge>
+                  <Badge variant="default">Saved</Badge>
                 </div>
                 <CardTitle className="group-hover:text-brand-teal">
                   {template.title}

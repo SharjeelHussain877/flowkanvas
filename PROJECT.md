@@ -11,8 +11,10 @@
 | Dashboard back navigation | `lib/dashboard/back-navigation.ts` | Config |
 | Dashboard loading | `components/dashboard/dashboard-loading.tsx` | Static UI |
 | Requests page | `app/(protected)/dashboard/requests/page.tsx` | Static UI |
-| Projects page | `app/(protected)/dashboard/projects/page.tsx` | Static UI |
-| Template page | `app/(protected)/dashboard/templates/[slug]/page.tsx` | Static UI |
+| Templates page | `app/(protected)/dashboard/templates/page.tsx` | Static UI |
+| New template page | `app/(protected)/dashboard/templates/new/page.tsx` | Static UI |
+| Template editor | `app/(protected)/dashboard/templates/[slug]/page.tsx` | Static UI |
+| Template workspace | `app/(protected)/dashboard/templates/_components/template-workspace.tsx` | Static UI |
 | Settings | `app/(protected)/dashboard/settings/page.tsx` | Wired (profile + security + invites) |
 | Settings profile API | `app/api/settings/profile/route.ts` | Wired |
 | Settings profile form | `app/(protected)/dashboard/settings/_components/profile-section.tsx` | Wired |
@@ -34,6 +36,11 @@
 | Brand logo | `components/brand-logo.tsx` | Shared asset |
 
 ## Changelog
+
+### 2026-07-26 (templates)
+- Renamed **Projects** → **Templates** at `/dashboard/templates`; sidebar nav and back links updated.
+- Templates list: saved templates grid + **Create Template** button → `/dashboard/templates/new`.
+- Template create/edit: shared workspace on `templates/new` (draft) and `templates/[slug]` (draft or saved status badges).
 
 ### 2026-07-26 (change password)
 - Settings: debounced current-password verification; **Update password** enables after current password is valid and new password + confirm match requirements.

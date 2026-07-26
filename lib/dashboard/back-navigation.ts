@@ -19,8 +19,15 @@ export function getDashboardBackNavigation(
     return null
   }
 
-  if (pathname.startsWith("/dashboard/templates/")) {
-    return { href: dashboardRoutes.projects, label: "Projects" }
+  if (
+    pathname.startsWith("/dashboard/templates/") &&
+    pathname !== dashboardRoutes.templateNew
+  ) {
+    return { href: dashboardRoutes.templates, label: "Templates" }
+  }
+
+  if (pathname === dashboardRoutes.templateNew) {
+    return { href: dashboardRoutes.templates, label: "Templates" }
   }
 
   if (pathname === dashboardRoutes.settings.general) {
