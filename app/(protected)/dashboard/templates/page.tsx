@@ -37,21 +37,28 @@ export default function TemplatesPage() {
             href={dashboardRoutes.template(template.slug)}
             className="group"
           >
-            <Card className="h-full transition-colors hover:border-brand-teal/40">
+            <Card className="h-full border-0 shadow-none ring-0 transition-colors hover:bg-brand-primary">
               <CardHeader>
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-lg bg-brand-teal/10 text-brand-teal">
+                  <div className="flex size-10 items-center justify-center rounded-lg bg-brand-teal/10 text-brand-teal transition-colors group-hover:bg-white/20 group-hover:text-white">
                     <LayoutTemplate className="size-5" />
                   </div>
-                  <Badge variant="default">Saved</Badge>
+                  <Badge
+                    variant="default"
+                    className="transition-colors group-hover:bg-white/20 group-hover:text-white"
+                  >
+                    Saved
+                  </Badge>
                 </div>
-                <CardTitle className="group-hover:text-brand-teal">
+                <CardTitle className="transition-colors group-hover:text-white">
                   {template.title}
                 </CardTitle>
-                <CardDescription>Updated {template.updatedAt}</CardDescription>
+                <CardDescription className="transition-colors group-hover:text-white/80">
+                  Updated {template.updatedAt}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground transition-colors group-hover:text-white/80">
                   Open template editor and payload preview.
                 </p>
               </CardContent>

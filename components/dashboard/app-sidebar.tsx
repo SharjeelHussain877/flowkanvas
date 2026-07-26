@@ -7,7 +7,8 @@ import {
   Workflow,
 } from "lucide-react"
 import Link from "next/link"
-import { memo, useState } from "react"
+import { usePathname } from "next/navigation"
+import { memo, useEffect, useState } from "react"
 
 import { BrandLogo } from "@/components/brand-logo"
 import { SidebarNavLink } from "@/components/dashboard/sidebar-nav-link"
@@ -32,12 +33,19 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { recentDraftTemplates } from "@/lib/dashboard/mock-data"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
 
 function AppSidebarComponent() {
+  const pathname = usePathname()
+  const { setOpenMobile } = useSidebar()
   const [recentsOpen, setRecentsOpen] = useState(true)
+
+  useEffect(() => {
+    setOpenMobile(false)
+  }, [pathname, setOpenMobile])
 
   return (
     <Sidebar collapsible="icon" className="border-sidebar-border">
