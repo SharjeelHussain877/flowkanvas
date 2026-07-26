@@ -9,6 +9,10 @@ import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
+  settingsOutlineButtonClassName,
+  settingsPrimaryButtonClassName,
+} from "@/app/(protected)/dashboard/settings/_components/settings-button-classes"
+import {
   Card,
   CardContent,
   CardDescription,
@@ -49,6 +53,7 @@ import type {
   PublicApiKey,
   RevokeApiKeyApiResponse,
 } from "@/schemas/api-keys/api-key"
+import { cn } from "@/lib/utils"
 
 type ApiKeysPanelProps = {
   initialData: PublicApiKey[]
@@ -241,10 +246,11 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
             </div>
             <Button
               type="button"
+              className={cn(settingsPrimaryButtonClassName, "shrink-0")}
               onClick={() => setCreateOpen(true)}
               disabled={Boolean(listError)}
             >
-              <Plus className="size-4" />
+              <Plus className="size-4" aria-hidden />
               Generate API key
             </Button>
           </CardHeader>
@@ -380,12 +386,17 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
               <Button
                 type="button"
                 variant="outline"
+                className={settingsOutlineButtonClassName}
                 disabled={createMutation.isPending}
                 onClick={() => handleCreateOpenChange(false)}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button
+                type="submit"
+                className={settingsPrimaryButtonClassName}
+                disabled={createMutation.isPending}
+              >
                 Generate
               </Button>
             </DialogFooter>
@@ -436,7 +447,11 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
           />
 
           <DialogFooter>
-            <Button type="button" onClick={() => handleSecretOpenChange(false)}>
+            <Button
+              type="button"
+              className={settingsPrimaryButtonClassName}
+              onClick={() => handleSecretOpenChange(false)}
+            >
               I have saved my key
             </Button>
           </DialogFooter>

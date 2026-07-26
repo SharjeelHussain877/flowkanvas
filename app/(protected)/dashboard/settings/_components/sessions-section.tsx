@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { apiClient } from "@/lib/api/client"
+import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
 import { queryKeys } from "@/lib/query/keys"
 import type {
   RevokeOtherSessionsResponse,
@@ -39,6 +40,7 @@ export function SessionsSection({
   const hasSyncedDeviceRef = useRef(false)
 
   const syncDeviceMutation = useMutation({
+    meta: backgroundMutationMeta,
     mutationFn: (userAgent: string) =>
       apiClient<{ data: { success: true } }>("/api/settings/sessions/sync-device", {
         method: "POST",

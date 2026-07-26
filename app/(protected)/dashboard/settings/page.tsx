@@ -4,7 +4,10 @@ import { ProfileSection } from "@/app/(protected)/dashboard/settings/_components
 import { SecuritySection } from "@/app/(protected)/dashboard/settings/_components/security-section"
 import { DashboardPage } from "@/components/dashboard/dashboard-page"
 import { buildInviteLink, getInviteCount } from "@/lib/services/invites"
-import { formatCanvaScopeMismatchMessage } from "@/lib/canva/scopes"
+import {
+  getCanvaConnectFlash,
+  type CanvaOAuthSearchParams,
+} from "@/lib/canva/oauth-notice"
 import { getCanvaConnectionStatus } from "@/lib/services/canva/connection"
 import type { CanvaConnectionStatus } from "@/lib/services/canva/connection"
 import { listUserSessions } from "@/lib/services/sessions/list-sessions"
@@ -13,37 +16,12 @@ import type { SessionsListResponse } from "@/schemas/settings/session"
 import { createClient } from "@/lib/supabase/server"
 
 type SettingsPageProps = {
-  searchParams: Promise<{
-    canva?: string
-    message?: string
-  }>
-}
-
-function resolveCanvaOAuthNotice(searchParams: {
-  canva?: string
-  message?: string
-}) {
-  if (searchParams.canva === "connected") {
-    return {
-      type: "success" as const,
-      message: "Canva connected successfully.",
-    }
-  }
-
-  if (searchParams.canva === "error") {
-    return {
-      type: "error" as const,
-      message: formatCanvaScopeMismatchMessage(
-        searchParams.message ?? "Could not connect Canva."
-      ),
-    }
-  }
-
-  return null
+  searchParams: Promise<CanvaOAuthSearchParams>
 }
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
-  const resolvedSearchParams = await searchParams
+  const canvaSearchParams = await searchParams
+  const connectFlash = getCanvaConnectFlash(canvaSearchParams)
   const supabase = await createClient()
   const {
     data: { user },
@@ -92,7 +70,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         <ProfileSection initialProfile={profile} />
         <CanvaSection
           initialConnection={canvaConnection}
-          oauthNotice={resolveCanvaOAuthNotice(resolvedSearchParams)}
+          connectFlash={connectFlash}
         />
         <SecuritySection
           initialSessions={initialSessions}

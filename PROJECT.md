@@ -11,11 +11,17 @@
 | Dashboard back navigation | `lib/dashboard/back-navigation.ts` | Config |
 | Dashboard loading | `components/dashboard/dashboard-loading.tsx` | Static UI |
 | Requests page | `app/(protected)/dashboard/requests/page.tsx` | Static UI |
-| Templates page | `app/(protected)/dashboard/templates/page.tsx` | Static UI |
+| Templates page | `app/(protected)/dashboard/templates/page.tsx` | Wired (Canva list + connect) |
+| Templates loading | `app/(protected)/dashboard/templates/_components/templates-page-skeleton.tsx` | Static UI |
+| Templates list | `app/(protected)/dashboard/templates/_components/templates-list.tsx` | Wired |
+| Template preview card | `app/(protected)/dashboard/templates/_components/template-preview-card.tsx` | Wired |
+| Connect Canva button | `components/canva/connect-canva-button.tsx` | Wired |
+| Canva templates API | `app/api/canva/templates/route.ts` | Wired |
 | New template page | `app/(protected)/dashboard/templates/new/page.tsx` | Static UI |
 | Template editor | `app/(protected)/dashboard/templates/[slug]/page.tsx` | Static UI |
 | Template workspace | `app/(protected)/dashboard/templates/_components/template-workspace.tsx` | Static UI |
 | Settings | `app/(protected)/dashboard/settings/page.tsx` | Wired (profile + security + invites + Canva) |
+| Settings loading | `app/(protected)/dashboard/settings/_components/settings-page-skeleton.tsx` | Static UI |
 | Canva settings section | `app/(protected)/dashboard/settings/_components/canva-section.tsx` | Wired |
 | Canva OAuth connect | `app/api/auth/canva/connect/route.ts` | Wired |
 | Canva OAuth callback | `app/api/auth/canva/callback/route.ts` | Wired |
@@ -32,6 +38,7 @@
 | Supabase schema migration | `supabase/migrations/20260726000000_flowkanvas_schema.sql` | SQL |
 | Invite services | `lib/services/invites.ts` | Wired |
 | Settings - API Keys | `app/(protected)/dashboard/settings/api-keys/page.tsx` | Wired |
+| API keys loading | `app/(protected)/dashboard/settings/api-keys/_components/api-keys-page-skeleton.tsx` | Static UI |
 | API keys services | `lib/services/api-keys/*` | Wired |
 | API keys routes | `app/api/api-keys/*` | Wired |
 | API key auth | `lib/api/authenticate-api-request.ts` | Wired |
@@ -42,6 +49,16 @@
 | Brand logo | `components/brand-logo.tsx` | Shared asset |
 
 ## Changelog
+
+### 2026-07-26 (templates loading UX)
+- Templates: client fetch shows inline spinner + grid skeleton; cards reveal one-by-one with fade-in.
+
+### 2026-07-26 (template cards)
+- Template cards use portrait layout; show Canva size (px + orientation) from design page dimensions API.
+
+### 2026-07-26 (templates canva)
+- Templates page lists Canva **designs** and **brand templates** when connected; shows **Connect Canva** when not.
+- `/api/canva/templates` + services call Canva REST API; OAuth connect supports `returnTo` redirect back to templates.
 
 ### 2026-07-26 (canva oauth)
 - Settings: **Connect Canva** via OAuth 2.0 PKCE — `/api/auth/canva/connect` → Canva authorize → `/api/auth/canva/callback`.

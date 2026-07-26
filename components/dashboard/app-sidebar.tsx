@@ -37,11 +37,13 @@ import {
 } from "@/components/ui/sidebar"
 import { recentDraftTemplates } from "@/lib/dashboard/mock-data"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
+import { cn } from "@/lib/utils"
 
 function AppSidebarComponent() {
   const pathname = usePathname()
-  const { setOpenMobile } = useSidebar()
+  const { setOpenMobile, state } = useSidebar()
   const [recentsOpen, setRecentsOpen] = useState(true)
+  const isCollapsed = state === "collapsed"
 
   useEffect(() => {
     setOpenMobile(false)
@@ -49,31 +51,30 @@ function AppSidebarComponent() {
 
   return (
     <Sidebar collapsible="icon" className="border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border p-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
+      <SidebarHeader className="flex h-12 shrink-0 items-center border-b border-sidebar-border p-0 px-2">
+        <SidebarMenu className="h-full w-full">
+          <SidebarMenuItem className="h-full w-full">
             <SidebarMenuButton
               asChild
               size="lg"
-              className="h-12 overflow-visible group-data-[collapsible=icon]:!size-auto group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:justify-center data-[state=open]:bg-sidebar-accent"
+              className={cn(
+                "h-full w-full gap-0 p-0 hover:bg-sidebar-accent",
+                "group-data-[collapsible=icon]:!size-auto group-data-[collapsible=icon]:!h-full group-data-[collapsible=icon]:!w-full"
+              )}
             >
               <Link
                 href={dashboardRoutes.requests}
-                className="flex h-12 w-full min-w-0 items-center overflow-visible group-data-[collapsible=icon]:justify-center"
+                aria-label="flowkanvas home"
+                className="flex h-full w-full min-w-0 items-center justify-start group-data-[collapsible=icon]:justify-center"
               >
-                <span className="flex h-12 w-full min-w-0 items-center justify-start px-1 group-data-[collapsible=icon]:hidden">
-                  <BrandLogo
-                    priority
-                    className="h-full max-h-12 w-full object-contain object-left"
-                  />
-                </span>
-                <span className="hidden h-12 w-full items-center justify-center p-1 group-data-[collapsible=icon]:flex">
-                  <BrandLogo
-                    variant="square"
-                    priority
-                    className="h-full max-h-12 w-full object-contain"
-                  />
-                </span>
+                <BrandLogo
+                  variant={isCollapsed ? "square" : "full"}
+                  priority
+                  className={cn(
+                    "h-full max-h-12 w-full object-contain",
+                    isCollapsed ? "object-center" : "object-left"
+                  )}
+                />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

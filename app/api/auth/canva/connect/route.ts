@@ -15,24 +15,37 @@ import { getSiteUrl } from "@/lib/env"
 import { CanvaServiceError } from "@/lib/services/canva/errors"
 import { requireAuthenticatedUserId } from "@/lib/services/canva/require-user"
 
-function settingsRedirect(path: string) {
-  return NextResponse.redirect(new URL(path, getSiteUrl()))
+function resolveCanvaReturnTo(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return dashboardRoutes.settings.general
+  }
+
+  return value
 }
 
-export async function GET() {
+function canvaRedirect(path: string, query: Record<string, string> = {}) {
+  const params = new URLSearchParams(query)
+  const suffix = params.size > 0 ? `?${params.toString()}` : ""
+  return NextResponse.redirect(new URL(`${path}${suffix}`, getSiteUrl()))
+}
+
+export async function GET(request: Request) {
+  const requestUrl = new URL(request.url)
+  const returnTo = resolveCanvaReturnTo(requestUrl.searchParams.get("returnTo"))
+
   try {
     await requireAuthenticatedUserId()
 
     const state = createCanvaOAuthState()
     const codeVerifier = createCanvaCodeVerifier()
 
-    await setCanvaOAuthCookies({ state, codeVerifier })
+    await setCanvaOAuthCookies({ state, codeVerifier, returnTo })
 
     const authorizeUrl = buildCanvaAuthorizeUrl({ state, codeVerifier })
     return NextResponse.redirect(authorizeUrl)
   } catch (error) {
     if (error instanceof CanvaServiceError && error.code === "UNAUTHORIZED") {
-      return settingsRedirect("/login")
+      return canvaRedirect("/login")
     }
 
     const message = formatCanvaScopeMismatchMessage(
@@ -40,8 +53,9 @@ export async function GET() {
     )
 
     await clearCanvaOAuthCookies()
-    return settingsRedirect(
-      `${dashboardRoutes.settings.general}?canva=error&message=${encodeURIComponent(message)}`
-    )
+    return canvaRedirect(returnTo, {
+      canva: "error",
+      message,
+    })
   }
 }

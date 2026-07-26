@@ -9,7 +9,8 @@ import {
 } from "@/lib/auth/routes"
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env"
 
-const AUTH_LOOKUP_TIMEOUT_MS = 8_000
+const AUTH_LOOKUP_TIMEOUT_MS =
+  process.env.NODE_ENV === "development" ? 2_000 : 8_000
 
 async function getAuthenticatedUser(
   supabase: ReturnType<typeof createServerClient>

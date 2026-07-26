@@ -1,5 +1,5 @@
-import { DashboardLoading } from "@/components/dashboard/dashboard-loading"
+import { ApiKeysPageSkeleton } from "@/app/(protected)/dashboard/settings/api-keys/_components/api-keys-page-skeleton"
 
 export default function SettingsApiKeysLoading() {
-  return <DashboardLoading />
+  return <ApiKeysPageSkeleton />
 }

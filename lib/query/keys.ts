@@ -15,5 +15,6 @@ export const queryKeys = {
   canva: {
     all: ["canva"] as const,
     connection: () => [...queryKeys.canva.all, "connection"] as const,
+    templates: () => [...queryKeys.canva.all, "templates"] as const,
   },
 } as const

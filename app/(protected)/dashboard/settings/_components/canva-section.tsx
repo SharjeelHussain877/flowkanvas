@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { apiClient } from "@/lib/api/client"
+import type { CanvaConnectFlash } from "@/lib/canva/oauth-notice"
 import { queryKeys } from "@/lib/query/keys"
 import type { CanvaConnectionStatus } from "@/lib/services/canva/connection"
 import { cn } from "@/lib/utils"
@@ -29,14 +30,9 @@ type CanvaConnectionResponse = {
   data: CanvaConnectionStatus
 }
 
-type CanvaOAuthNotice = {
-  type: "success" | "error"
-  message: string
-}
-
 type CanvaSectionProps = {
   initialConnection: CanvaConnectionStatus
-  oauthNotice?: CanvaOAuthNotice | null
+  connectFlash?: CanvaConnectFlash | null
 }
 
 function formatConnectedAt(value: string | null) {
@@ -52,11 +48,11 @@ function formatConnectedAt(value: string | null) {
 
 export function CanvaSection({
   initialConnection,
-  oauthNotice = null,
+  connectFlash = null,
 }: CanvaSectionProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [notice, setNotice] = useState<CanvaOAuthNotice | null>(oauthNotice)
+  const [notice, setNotice] = useState<CanvaConnectFlash | null>(connectFlash)
   const [isConnecting, setIsConnecting] = useState(false)
 
   const { data: connection } = useQuery({
@@ -67,16 +63,16 @@ export function CanvaSection({
   })
 
   useEffect(() => {
-    if (!oauthNotice) {
+    if (!connectFlash) {
       return
     }
 
-    if (oauthNotice.type === "success") {
+    if (connectFlash.type === "success") {
       void queryClient.invalidateQueries({ queryKey: queryKeys.canva.connection() })
     }
 
     router.replace("/dashboard/settings", { scroll: false })
-  }, [oauthNotice, queryClient, router])
+  }, [connectFlash, queryClient, router])
 
   const disconnectMutation = useMutation({
     mutationFn: () =>

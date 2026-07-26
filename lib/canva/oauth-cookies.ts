@@ -2,12 +2,14 @@ import { cookies } from "next/headers"
 
 export const CANVA_OAUTH_STATE_COOKIE = "canva_oauth_state"
 export const CANVA_OAUTH_CODE_VERIFIER_COOKIE = "canva_oauth_code_verifier"
+export const CANVA_OAUTH_RETURN_TO_COOKIE = "canva_oauth_return_to"
 
 const OAUTH_COOKIE_MAX_AGE_SECONDS = 60 * 10
 
 type CanvaOAuthCookiePayload = {
   state: string
   codeVerifier: string
+  returnTo?: string
 }
 
 function getOAuthCookieOptions() {
@@ -30,18 +32,27 @@ export async function setCanvaOAuthCookies(payload: CanvaOAuthCookiePayload) {
     payload.codeVerifier,
     options
   )
+
+  if (payload.returnTo) {
+    cookieStore.set(CANVA_OAUTH_RETURN_TO_COOKIE, payload.returnTo, options)
+  }
 }
 
 export async function readCanvaOAuthCookies(): Promise<CanvaOAuthCookiePayload | null> {
   const cookieStore = await cookies()
   const state = cookieStore.get(CANVA_OAUTH_STATE_COOKIE)?.value
   const codeVerifier = cookieStore.get(CANVA_OAUTH_CODE_VERIFIER_COOKIE)?.value
+  const returnTo = cookieStore.get(CANVA_OAUTH_RETURN_TO_COOKIE)?.value
 
   if (!state || !codeVerifier) {
     return null
   }
 
-  return { state, codeVerifier }
+  return {
+    state,
+    codeVerifier,
+    returnTo,
+  }
 }
 
 export async function clearCanvaOAuthCookies() {
@@ -49,4 +60,5 @@ export async function clearCanvaOAuthCookies() {
 
   cookieStore.delete(CANVA_OAUTH_STATE_COOKIE)
   cookieStore.delete(CANVA_OAUTH_CODE_VERIFIER_COOKIE)
+  cookieStore.delete(CANVA_OAUTH_RETURN_TO_COOKIE)
 }

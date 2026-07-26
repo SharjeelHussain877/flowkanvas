@@ -1,5 +1,5 @@
-import { DashboardLoading } from "@/components/dashboard/dashboard-loading"
+import { TemplatesPageSkeleton } from "@/app/(protected)/dashboard/templates/_components/templates-page-skeleton"
 
 export default function TemplatesLoading() {
-  return <DashboardLoading />
+  return <TemplatesPageSkeleton />
 }

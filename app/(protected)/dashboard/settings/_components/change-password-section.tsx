@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input"
 import { ApiError, apiClient } from "@/lib/api/client"
 import { isPasswordValid } from "@/lib/auth/password-requirements"
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value"
+import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
 import {
   changePasswordFormSchema,
   type ChangePasswordFormValues,
@@ -67,6 +68,7 @@ export function ChangePasswordSection() {
   }
 
   const verifyCurrentPasswordMutation = useMutation({
+    meta: backgroundMutationMeta,
     mutationFn: (password: string) =>
       apiClient<VerifyCurrentPasswordResponse>(
         "/api/settings/password/verify-current",

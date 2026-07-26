@@ -12,11 +12,18 @@ import { saveCanvaConnection } from "@/lib/services/canva/connection"
 import { CanvaServiceError } from "@/lib/services/canva/errors"
 import { requireAuthenticatedUserId } from "@/lib/services/canva/require-user"
 
-function settingsRedirect(query: Record<string, string>) {
+function resolveCanvaReturnTo(value: string | undefined) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return dashboardRoutes.settings.general
+  }
+
+  return value
+}
+
+function canvaRedirect(path: string, query: Record<string, string> = {}) {
   const params = new URLSearchParams(query)
-  return NextResponse.redirect(
-    new URL(`${dashboardRoutes.settings.general}?${params.toString()}`, getSiteUrl())
-  )
+  const suffix = params.size > 0 ? `?${params.toString()}` : ""
+  return NextResponse.redirect(new URL(`${path}${suffix}`, getSiteUrl()))
 }
 
 export async function GET(request: Request) {
@@ -27,9 +34,12 @@ export async function GET(request: Request) {
   const canvaErrorDescription =
     requestUrl.searchParams.get("error_description") ?? "Canva authorization was denied"
 
+  const oauthCookies = await readCanvaOAuthCookies()
+  const returnTo = resolveCanvaReturnTo(oauthCookies?.returnTo)
+
   if (canvaError) {
     await clearCanvaOAuthCookies()
-    return settingsRedirect({
+    return canvaRedirect(returnTo, {
       canva: "error",
       message: formatCanvaScopeMismatchMessage(canvaErrorDescription),
     })
@@ -37,7 +47,7 @@ export async function GET(request: Request) {
 
   if (!code || !state) {
     await clearCanvaOAuthCookies()
-    return settingsRedirect({
+    return canvaRedirect(returnTo, {
       canva: "error",
       message: "Missing Canva authorization response",
     })
@@ -45,8 +55,6 @@ export async function GET(request: Request) {
 
   try {
     await requireAuthenticatedUserId()
-
-    const oauthCookies = await readCanvaOAuthCookies()
 
     if (!oauthCookies || oauthCookies.state !== state) {
       throw new CanvaServiceError(
@@ -64,7 +72,7 @@ export async function GET(request: Request) {
     await saveCanvaConnection(tokens)
     await clearCanvaOAuthCookies()
 
-    return settingsRedirect({ canva: "connected" })
+    return canvaRedirect(returnTo, { canva: "connected" })
   } catch (error) {
     await clearCanvaOAuthCookies()
 
@@ -75,7 +83,7 @@ export async function GET(request: Request) {
     const message =
       error instanceof Error ? error.message : "Could not connect Canva"
 
-    return settingsRedirect({
+    return canvaRedirect(returnTo, {
       canva: "error",
       message: formatCanvaScopeMismatchMessage(message),
     })
