@@ -15,7 +15,13 @@
 | New template page | `app/(protected)/dashboard/templates/new/page.tsx` | Static UI |
 | Template editor | `app/(protected)/dashboard/templates/[slug]/page.tsx` | Static UI |
 | Template workspace | `app/(protected)/dashboard/templates/_components/template-workspace.tsx` | Static UI |
-| Settings | `app/(protected)/dashboard/settings/page.tsx` | Wired (profile + security + invites) |
+| Settings | `app/(protected)/dashboard/settings/page.tsx` | Wired (profile + security + invites + Canva) |
+| Canva settings section | `app/(protected)/dashboard/settings/_components/canva-section.tsx` | Wired |
+| Canva OAuth connect | `app/api/auth/canva/connect/route.ts` | Wired |
+| Canva OAuth callback | `app/api/auth/canva/callback/route.ts` | Wired |
+| Canva settings API | `app/api/settings/canva/route.ts` | Wired |
+| Canva services | `lib/services/canva/*` | Wired |
+| Accounts migration | `supabase/migrations/20260726120000_accounts.sql` | SQL |
 | Settings profile API | `app/api/settings/profile/route.ts` | Wired |
 | Settings profile form | `app/(protected)/dashboard/settings/_components/profile-section.tsx` | Wired |
 | Settings change password | `app/(protected)/dashboard/settings/_components/change-password-section.tsx` | Wired |
@@ -36,6 +42,10 @@
 | Brand logo | `components/brand-logo.tsx` | Shared asset |
 
 ## Changelog
+
+### 2026-07-26 (canva oauth)
+- Settings: **Connect Canva** via OAuth 2.0 PKCE — `/api/auth/canva/connect` → Canva authorize → `/api/auth/canva/callback`.
+- Tokens stored in `accounts` (RLS); settings shows connection status + disconnect; token refresh helper for future API calls.
 
 ### 2026-07-26 (templates)
 - Renamed **Projects** → **Templates** at `/dashboard/templates`; sidebar nav and back links updated.

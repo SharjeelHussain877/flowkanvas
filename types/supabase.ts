@@ -50,6 +50,47 @@ export type Database = {
           },
         ]
       }
+      accounts: {
+        Row: {
+          user_id: string
+          access_token: string
+          refresh_token: string
+          token_type: string
+          expires_at: string
+          scopes: string
+          connected_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          access_token: string
+          refresh_token: string
+          token_type?: string
+          expires_at: string
+          scopes: string
+          connected_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          access_token?: string
+          refresh_token?: string
+          token_type?: string
+          expires_at?: string
+          scopes?: string
+          connected_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: Record<string, never>
     Functions: {

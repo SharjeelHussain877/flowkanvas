@@ -53,3 +53,30 @@ export function getAuthConfirmUrl(next: string): string {
 export function getPasswordRecoveryConfirmUrl(): string {
   return `${getSiteUrl()}/change-password`
 }
+
+export function getCanvaClientId(): string {
+  return requireEnv("CANVA_CLIENT_ID")
+}
+
+export function getCanvaClientSecret(): string {
+  return requireEnv("CANVA_CLIENT_SECRET")
+}
+
+export function getCanvaRedirectUri(): string {
+  return `${getSiteUrl()}/api/auth/canva/callback`
+}
+
+const DEFAULT_CANVA_SCOPES = [
+  "profile:read",
+  "design:meta:read",
+  "design:content:read",
+  "brandtemplate:meta:read",
+  "brandtemplate:content:read",
+  "asset:read",
+  "folder:read",
+].join(" ")
+
+export function getCanvaScopes(): string {
+  const configured = process.env.CANVA_SCOPES?.trim()
+  return configured && configured.length > 0 ? configured : DEFAULT_CANVA_SCOPES
+}

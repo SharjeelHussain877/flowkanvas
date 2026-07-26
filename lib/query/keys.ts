@@ -12,4 +12,8 @@ export const queryKeys = {
     all: ["sessions"] as const,
     list: () => [...queryKeys.sessions.all, "list"] as const,
   },
+  canva: {
+    all: ["canva"] as const,
+    connection: () => [...queryKeys.canva.all, "connection"] as const,
+  },
 } as const
