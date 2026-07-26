@@ -8,6 +8,7 @@ export const signUpSchema = z.object({
   fullName: personNameField,
   email: emailField,
   password: passwordField,
+  inviteRef: z.string().uuid().optional(),
 })
 
 export type SignUpInput = z.infer<typeof signUpSchema>

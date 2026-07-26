@@ -5,7 +5,7 @@ import { mapSupabaseAuthError } from "@/lib/services/auth/errors"
 export async function logoutUser(): Promise<LogoutResponse> {
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signOut()
+  const { error } = await supabase.auth.signOut({ scope: "local" })
 
   if (error) {
     throw mapSupabaseAuthError(error)

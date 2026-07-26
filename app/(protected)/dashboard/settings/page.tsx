@@ -1,54 +1,51 @@
+import { InviteLinkButton } from "@/app/(protected)/dashboard/settings/_components/invite-link-button"
+import { ProfileSection } from "@/app/(protected)/dashboard/settings/_components/profile-section"
+import { SecuritySection } from "@/app/(protected)/dashboard/settings/_components/security-section"
 import { DashboardPage } from "@/components/dashboard/dashboard-page"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { buildInviteLink, getInviteCount } from "@/lib/services/invites"
+import { listUserSessions } from "@/lib/services/sessions/list-sessions"
+import { parseProfileFromUser } from "@/lib/services/settings/parse-profile"
+import type { SessionsListResponse } from "@/schemas/settings/session"
+import { createClient } from "@/lib/supabase/server"
 
-export default function SettingsGeneralPage() {
+export default async function SettingsPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const inviteCount = await getInviteCount()
+  const profile = parseProfileFromUser(user, inviteCount)
+  const inviteLink = user ? buildInviteLink(user.id) : ""
+
+  let initialSessions: SessionsListResponse["data"] = {
+    sessions: [],
+    currentSessionId: null,
+  }
+  let sessionsLoadError: string | null = null
+
+  if (user) {
+    try {
+      initialSessions = await listUserSessions()
+    } catch (error) {
+      sessionsLoadError =
+        error instanceof Error ? error.message : "Failed to load sessions"
+    }
+  }
+
   return (
     <DashboardPage
-      title="General settings"
-      description="Workspace defaults and regional preferences."
+      title="Settings"
+      description="Manage your profile and security settings."
+      action={<InviteLinkButton inviteLink={inviteLink} />}
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Workspace</CardTitle>
-          <CardDescription>
-            These values appear in generated PDFs and API responses.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-2">
-            <Label htmlFor="workspace-name">Workspace name</Label>
-            <Input
-              id="workspace-name"
-              defaultValue="flowkanvas Studio"
-              readOnly
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="timezone">Timezone</Label>
-            <Input id="timezone" defaultValue="Asia/Karachi (UTC+5)" readOnly />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="default-format">Default export format</Label>
-            <Input id="default-format" defaultValue="PDF/A-1b" readOnly />
-          </div>
-        </CardContent>
-        <CardFooter className="justify-end gap-2">
-          <Button variant="outline" disabled>
-            Reset
-          </Button>
-          <Button disabled>Save changes</Button>
-        </CardFooter>
-      </Card>
+      <div className="grid gap-4">
+        <ProfileSection initialProfile={profile} />
+        <SecuritySection
+          initialSessions={initialSessions}
+          sessionsLoadError={sessionsLoadError}
+        />
+      </div>
     </DashboardPage>
   )
 }

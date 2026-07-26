@@ -5,9 +5,7 @@ export const dashboardRoutes = {
   template: (slug: string) => `/dashboard/templates/${slug}`,
   settings: {
     general: "/dashboard/settings",
-    profile: "/dashboard/settings/profile",
-    security: "/dashboard/settings/security",
-    apiKey: "/dashboard/settings/api-key",
+    apiKeys: "/dashboard/settings/api-keys",
   },
 } as const
 
@@ -19,23 +17,13 @@ export const dashboardDirectSidebarRoutes = [
 
 export const dashboardSettingsNav = [
   {
-    title: "General",
+    title: "Settings",
     href: dashboardRoutes.settings.general,
-    description: "Workspace name, timezone, and defaults",
+    description: "Profile and security",
   },
   {
-    title: "Profile",
-    href: dashboardRoutes.settings.profile,
-    description: "Your name, email, and avatar",
-  },
-  {
-    title: "Security",
-    href: dashboardRoutes.settings.security,
-    description: "Password and session controls",
-  },
-  {
-    title: "API Key",
-    href: dashboardRoutes.settings.apiKey,
+    title: "API Keys",
+    href: dashboardRoutes.settings.apiKeys,
     description: "Generate and manage API keys",
   },
 ] as const

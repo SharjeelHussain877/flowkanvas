@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await signUpUser(parsed.data)
+    const result = await signUpUser(parsed.data, request.headers)
     return Response.json(result)
   } catch (error) {
     return handleAuthRouteError(error)

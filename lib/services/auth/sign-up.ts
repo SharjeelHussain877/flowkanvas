@@ -1,18 +1,28 @@
 import type { SignUpInput, SignUpResponse } from "@/schemas/auth/sign-up"
 import { getEmailVerificationCallbackUrl } from "@/lib/env"
+import { resolveInviterId } from "@/lib/services/invites"
 import { createClient } from "@/lib/supabase/server"
 import { mapSupabaseAuthError, AuthServiceError } from "@/lib/services/auth/errors"
 
-export async function signUpUser(input: SignUpInput): Promise<SignUpResponse> {
-  const supabase = await createClient()
+export async function signUpUser(
+  input: SignUpInput,
+  requestHeaders?: Headers
+): Promise<SignUpResponse> {
+  const supabase = await createClient({ requestHeaders })
+  const invitedBy = await resolveInviterId(input.inviteRef)
+  const userMetadata: Record<string, string> = {
+    full_name: input.fullName,
+  }
+
+  if (invitedBy) {
+    userMetadata.invited_by = invitedBy
+  }
 
   const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
     options: {
-      data: {
-        full_name: input.fullName,
-      },
+      data: userMetadata,
       emailRedirectTo: getEmailVerificationCallbackUrl(),
     },
   })

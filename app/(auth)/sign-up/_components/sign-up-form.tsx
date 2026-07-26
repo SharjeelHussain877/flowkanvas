@@ -29,9 +29,13 @@ import {
 
 export interface SignUpFormProps {
   defaultEmail?: string
+  inviteRef?: string
 }
 
-export function SignUpForm({ defaultEmail = "" }: SignUpFormProps) {
+export function SignUpForm({
+  defaultEmail = "",
+  inviteRef,
+}: SignUpFormProps) {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
 
@@ -51,7 +55,10 @@ export function SignUpForm({ defaultEmail = "" }: SignUpFormProps) {
     mutationFn: (data: SignUpInput) =>
       apiClient<SignUpResponse>("/api/auth/sign-up", {
         method: "POST",
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          inviteRef,
+        }),
       }),
     onSuccess: (data, variables) => {
       form.clearErrors("root")

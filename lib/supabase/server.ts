@@ -2,11 +2,23 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env"
+import { getSupabaseForwardHeaders } from "@/lib/supabase/request-headers"
+import type { Database } from "@/types/supabase"
 
-export async function createClient() {
+type CreateClientOptions = {
+  requestHeaders?: Headers
+}
+
+export async function createClient(options?: CreateClientOptions) {
   const cookieStore = await cookies()
+  const forwardHeaders = options?.requestHeaders
+    ? getSupabaseForwardHeaders(options.requestHeaders)
+    : {}
 
-  return createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+  return createServerClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
+    global: {
+      headers: forwardHeaders,
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll()

@@ -3,8 +3,6 @@
 import {
   KeyRound,
   Settings2,
-  Shield,
-  UserRound,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -35,10 +33,8 @@ const mockUser = {
 } as const
 
 const settingsIcons = {
-  General: Settings2,
-  Profile: UserRound,
-  Security: Shield,
-  "API Key": KeyRound,
+  Settings: Settings2,
+  "API Keys": KeyRound,
 } as const
 
 function SidebarUserMenuComponent() {
@@ -71,7 +67,7 @@ function SidebarUserMenuComponent() {
             side="top"
             align="start"
             sideOffset={8}
-            className="min-w-(--radix-dropdown-menu-trigger-width) w-(--radix-dropdown-menu-trigger-width) max-w-(--radix-dropdown-menu-trigger-width)"
+            className="min-w-(--radix-dropdown-menu-trigger-width) w-(--radix-dropdown-menu-trigger-width) max-w-(--radix-dropdown-menu-trigger-width) p-1.5"
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
@@ -88,20 +84,24 @@ function SidebarUserMenuComponent() {
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
+            <DropdownMenuSeparator className="my-1.5" />
+            <DropdownMenuGroup className="flex flex-col gap-1">
               {dashboardSettingsNav.map((item) => {
                 const Icon =
                   settingsIcons[item.title as keyof typeof settingsIcons]
                 const isActive = pathname === item.href
 
                 return (
-                  <DropdownMenuItem key={item.href} asChild>
+                  <DropdownMenuItem
+                    key={item.href}
+                    asChild
+                    className="gap-2.5 rounded-md px-2 py-1.5 focus:bg-muted/50 focus:text-foreground"
+                  >
                     <Link
                       href={item.href}
                       className={cn(
                         "cursor-pointer",
-                        isActive && "bg-accent text-accent-foreground"
+                        isActive && "bg-muted/60 text-foreground"
                       )}
                     >
                       <Icon />

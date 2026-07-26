@@ -2,8 +2,11 @@ import type { LoginInput, LoginResponse } from "@/schemas/auth/login"
 import { createClient } from "@/lib/supabase/server"
 import { mapSupabaseAuthError } from "@/lib/services/auth/errors"
 
-export async function loginUser(input: LoginInput): Promise<LoginResponse> {
-  const supabase = await createClient()
+export async function loginUser(
+  input: LoginInput,
+  requestHeaders?: Headers
+): Promise<LoginResponse> {
+  const supabase = await createClient({ requestHeaders })
 
   const { error } = await supabase.auth.signInWithPassword({
     email: input.email,

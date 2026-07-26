@@ -13,10 +13,20 @@
 | Requests page | `app/(protected)/dashboard/requests/page.tsx` | Static UI |
 | Projects page | `app/(protected)/dashboard/projects/page.tsx` | Static UI |
 | Template page | `app/(protected)/dashboard/templates/[slug]/page.tsx` | Static UI |
-| Settings - General | `app/(protected)/dashboard/settings/page.tsx` | Static UI |
-| Settings - Profile | `app/(protected)/dashboard/settings/profile/page.tsx` | Static UI |
-| Settings - Security | `app/(protected)/dashboard/settings/security/page.tsx` | Static UI |
-| Settings - API Key | `app/(protected)/dashboard/settings/api-key/page.tsx` | Static UI |
+| Settings | `app/(protected)/dashboard/settings/page.tsx` | Wired (profile + security + invites) |
+| Settings profile API | `app/api/settings/profile/route.ts` | Wired |
+| Settings profile form | `app/(protected)/dashboard/settings/_components/profile-section.tsx` | Wired |
+| Settings change password | `app/(protected)/dashboard/settings/_components/change-password-section.tsx` | Wired |
+| Settings password API | `app/api/settings/password/*` | Wired |
+| Settings sessions | `app/(protected)/dashboard/settings/_components/sessions-section.tsx` | Wired |
+| Settings sessions API | `app/api/settings/sessions/*` | Wired |
+| Session services | `lib/services/sessions/*` | Wired |
+| Supabase schema migration | `supabase/migrations/20260726000000_flowkanvas_schema.sql` | SQL |
+| Invite services | `lib/services/invites.ts` | Wired |
+| Settings - API Keys | `app/(protected)/dashboard/settings/api-keys/page.tsx` | Wired |
+| API keys services | `lib/services/api-keys/*` | Wired |
+| API keys routes | `app/api/api-keys/*` | Wired |
+| API key auth | `lib/api/authenticate-api-request.ts` | Wired |
 | Dashboard routes | `lib/dashboard/routes.ts` | Config |
 | Dashboard mock data | `lib/dashboard/mock-data.ts` | Mock |
 | Dashboard logout button | `components/dashboard/logout-button.tsx` | Wired |
@@ -24,6 +34,38 @@
 | Brand logo | `components/brand-logo.tsx` | Shared asset |
 
 ## Changelog
+
+### 2026-07-26 (change password)
+- Settings: debounced current-password verification; **Update password** enables after current password is valid and new password + confirm match requirements.
+- New/confirm password inputs stay disabled until current password verifies; field labels stay normal on error (red text below only).
+- Profile + change password UI state (`isEditing`, verification status) moved into react-hook-form fields instead of `useState`.
+- Change password: show/hide toggles on new + confirm password fields (Eye icon).
+
+### 2026-07-26 (sessions dedupe)
+- Active sessions list merges duplicate device rows (same device/browser/IP); sign out revokes all matching sessions.
+
+### 2026-07-26 (sessions)
+- Settings: real **Active sessions** list from `auth.sessions` (device, browser, IP, last active); revoke one session or all other devices; logout uses `local` scope for multi-device sign-in.
+
+### 2026-07-26 (no toasts)
+- Removed `sonner` and all toast notifications; copy/save feedback uses inline UI state only.
+
+### 2026-07-26 (auth-only users)
+- Removed `public.profiles` table; all profile and invite data lives in Supabase Auth `user_metadata` only.
+- Consolidated migrations into `supabase/migrations/20260726000000_flowkanvas_schema.sql` (API keys, avatars storage, invite count RPC).
+
+### 2026-07-26 (auth avatar)
+- Profile photo sync writes `avatar_url`, `avatarUrl`, and `picture` to Supabase Auth `user_metadata` for Auth dashboard avatars.
+
+### 2026-07-26 (invites)
+- Settings: **Copy invite link** button; referral URL `/sign-up?ref={userId}`; sign-up stores `invited_by` in invitee auth metadata; profile card shows invite count via `get_my_invite_count()`.
+
+### 2026-07-26 (later)
+- Settings: merged Profile into `/dashboard/settings`; removed Profile from dropdown nav; legacy `/settings/profile` redirects to main settings page.
+
+### 2026-07-26
+- API Keys: Supabase `api_keys` table with RLS, secure generation (`pdf_sk_live_*`), SHA-256 storage, list/create/revoke API routes, Settings UI with one-time secret modal, and revoke confirmation.
+- Profile settings: merged Security (password + sessions) into Profile page; removed Security from settings dropdown; legacy `/settings/security` and `/settings/api-key` redirect.
 
 ### 2026-07-21
 - Landing page: unified section spacing tokens (`py-16 sm:py-20 lg:py-24`, shared container/grid/body gaps); fixed horizontal scroll; trust bar bullets stack in a column on mobile.
