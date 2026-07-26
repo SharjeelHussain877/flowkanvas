@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { buildCanvaAuthorizeUrl } from "@/lib/canva/config"
+import { formatCanvaScopeMismatchMessage } from "@/lib/canva/scopes"
 import {
   clearCanvaOAuthCookies,
   setCanvaOAuthCookies,
@@ -9,7 +10,6 @@ import {
   createCanvaCodeVerifier,
   createCanvaOAuthState,
 } from "@/lib/canva/pkce"
-import { handleCanvaRouteError } from "@/lib/api/canva-route"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
 import { getSiteUrl } from "@/lib/env"
 import { CanvaServiceError } from "@/lib/services/canva/errors"
@@ -35,11 +35,13 @@ export async function GET() {
       return settingsRedirect("/login")
     }
 
+    const message = formatCanvaScopeMismatchMessage(
+      error instanceof Error ? error.message : "Could not start Canva authorization"
+    )
+
     await clearCanvaOAuthCookies()
     return settingsRedirect(
-      `${dashboardRoutes.settings.general}?canva=error&message=${encodeURIComponent(
-        error instanceof Error ? error.message : "Could not start Canva authorization"
-      )}`
+      `${dashboardRoutes.settings.general}?canva=error&message=${encodeURIComponent(message)}`
     )
   }
 }

@@ -4,6 +4,7 @@ import { ProfileSection } from "@/app/(protected)/dashboard/settings/_components
 import { SecuritySection } from "@/app/(protected)/dashboard/settings/_components/security-section"
 import { DashboardPage } from "@/components/dashboard/dashboard-page"
 import { buildInviteLink, getInviteCount } from "@/lib/services/invites"
+import { formatCanvaScopeMismatchMessage } from "@/lib/canva/scopes"
 import { getCanvaConnectionStatus } from "@/lib/services/canva/connection"
 import type { CanvaConnectionStatus } from "@/lib/services/canva/connection"
 import { listUserSessions } from "@/lib/services/sessions/list-sessions"
@@ -32,7 +33,9 @@ function resolveCanvaOAuthNotice(searchParams: {
   if (searchParams.canva === "error") {
     return {
       type: "error" as const,
-      message: searchParams.message ?? "Could not connect Canva.",
+      message: formatCanvaScopeMismatchMessage(
+        searchParams.message ?? "Could not connect Canva."
+      ),
     }
   }
 

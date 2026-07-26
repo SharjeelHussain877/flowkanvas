@@ -1,4 +1,5 @@
 import { authConfirmPath, defaultAuthenticatedPath } from "@/lib/auth/routes"
+import { CANVA_TEMPLATE_SCOPES_STRING } from "@/lib/canva/scopes"
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -66,17 +67,19 @@ export function getCanvaRedirectUri(): string {
   return `${getSiteUrl()}/api/auth/canva/callback`
 }
 
-const DEFAULT_CANVA_SCOPES = [
-  "profile:read",
-  "design:meta:read",
-  "design:content:read",
-  "brandtemplate:meta:read",
-  "brandtemplate:content:read",
-  "asset:read",
-  "folder:read",
-].join(" ")
-
 export function getCanvaScopes(): string {
   const configured = process.env.CANVA_SCOPES?.trim()
-  return configured && configured.length > 0 ? configured : DEFAULT_CANVA_SCOPES
+
+  if (!configured) {
+    throw new Error(
+      "CANVA_SCOPES is not set. Add scopes to .env that match your Canva integration (Developer Portal → Authentication → Scopes)."
+    )
+  }
+
+  return configured
+}
+
+/** Documented default for .env.example — not used unless copied into CANVA_SCOPES. */
+export function getCanvaScopesExample(): string {
+  return CANVA_TEMPLATE_SCOPES_STRING
 }

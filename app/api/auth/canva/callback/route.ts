@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { formatCanvaScopeMismatchMessage } from "@/lib/canva/scopes"
 import { exchangeCanvaAuthorizationCode } from "@/lib/canva/token"
 import {
   clearCanvaOAuthCookies,
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
     await clearCanvaOAuthCookies()
     return settingsRedirect({
       canva: "error",
-      message: canvaErrorDescription,
+      message: formatCanvaScopeMismatchMessage(canvaErrorDescription),
     })
   }
 
@@ -76,7 +77,7 @@ export async function GET(request: Request) {
 
     return settingsRedirect({
       canva: "error",
-      message,
+      message: formatCanvaScopeMismatchMessage(message),
     })
   }
 }
