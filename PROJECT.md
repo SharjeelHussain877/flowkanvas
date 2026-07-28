@@ -50,6 +50,9 @@
 
 ## Changelog
 
+### 2026-07-28 (site url)
+- Auth redirects (confirm, Canva OAuth, invites, sign-up email) always use `NEXT_PUBLIC_SITE_URL` — no request-origin localhost fallback.
+
 ### 2026-07-26 (templates loading UX)
 - Templates: client fetch shows inline spinner + grid skeleton; cards reveal one-by-one with fade-in.
 
@@ -117,7 +120,7 @@
 - Landing page: removed pricing section; nav links Features + How It Works only.
 - Landing page: lazy below-fold sections via `LazySection` (Intersection Observer) - only nav + hero render on initial load; nav anchor clicks force-mount target sections.
 - Root layout: `suppressHydrationWarning` on `<html>` and `<body>` to tolerate browser extensions that inject attributes (e.g. `cz-shortcut-listen`) before hydration.
-- Email verify callback: `getEmailVerificationCallbackUrl()` → `http://localhost:3000/api/auth/confirm?next=/dashboard`; post-verify redirect via `NEXT_PUBLIC_EMAIL_VERIFY_REDIRECT` (default `/dashboard`).
+- Email verify callback: `getEmailVerificationCallbackUrl()` → `${NEXT_PUBLIC_SITE_URL}/api/auth/confirm?next=/dashboard`; post-verify redirect via `NEXT_PUBLIC_EMAIL_VERIFY_REDIRECT` (default `/dashboard`).
 - Sign-up success redirects to `/login?notice=confirm_email` (email confirm) or `/dashboard` (instant session); proxy auth lookup timeout prevents page hang when Supabase is slow.
 - Auth group: home-style typography mix - `font-sans` body, `font-serif` card titles + italic tagline accent.
 - Auth layout: larger center-aligned header logo (`h-16`, `max-w-[18rem]`).

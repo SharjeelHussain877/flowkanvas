@@ -10,18 +10,10 @@ import {
   createCanvaCodeVerifier,
   createCanvaOAuthState,
 } from "@/lib/canva/pkce"
-import { dashboardRoutes } from "@/lib/dashboard/routes"
+import { getCanvaOAuthReturnTo } from "@/lib/canva/oauth-return"
 import { getSiteUrl } from "@/lib/env"
 import { CanvaServiceError } from "@/lib/services/canva/errors"
 import { requireAuthenticatedUserId } from "@/lib/services/canva/require-user"
-
-function resolveCanvaReturnTo(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return dashboardRoutes.settings.general
-  }
-
-  return value
-}
 
 function canvaRedirect(path: string, query: Record<string, string> = {}) {
   const params = new URLSearchParams(query)
@@ -31,7 +23,7 @@ function canvaRedirect(path: string, query: Record<string, string> = {}) {
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
-  const returnTo = resolveCanvaReturnTo(requestUrl.searchParams.get("returnTo"))
+  const returnTo = getCanvaOAuthReturnTo(requestUrl.searchParams.get("returnTo"))
 
   try {
     await requireAuthenticatedUserId()

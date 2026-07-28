@@ -22,15 +22,13 @@ export function getSupabaseServiceRoleKey(): string {
 }
 
 export function getSiteUrl(): string {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+
+  if (!configured) {
+    throw new Error("Missing required environment variable: NEXT_PUBLIC_SITE_URL")
   }
 
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`
-  }
-
-  return "http://localhost:3000"
+  return configured.replace(/\/$/, "")
 }
 
 export function getEmailVerifyRedirectPath(): string {
@@ -51,8 +49,16 @@ export function getAuthConfirmUrl(next: string): string {
   return `${getSiteUrl()}${authConfirmPath}?${params.toString()}`
 }
 
+export function buildSitePath(path: string): string {
+  if (!path.startsWith("/")) {
+    return getSiteUrl()
+  }
+
+  return `${getSiteUrl()}${path}`
+}
+
 export function getPasswordRecoveryConfirmUrl(): string {
-  return `${getSiteUrl()}/change-password`
+  return getAuthConfirmUrl("/change-password")
 }
 
 export function getCanvaClientId(): string {

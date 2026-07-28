@@ -1,40 +1,16 @@
 import type { EmailOtpType } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
+import { getAuthConfirmNextPath } from "@/lib/auth/confirm-redirect"
 import { createClient } from "@/lib/supabase/server"
-import { defaultAuthenticatedPath } from "@/lib/auth/routes"
+import { buildSitePath, getSiteUrl } from "@/lib/env"
 import { mapSupabaseAuthError } from "@/lib/services/auth/errors"
 
-function loginRedirect(requestUrl: string, errorCode: string) {
-  const origin = new URL(requestUrl).origin
+function redirectToLogin(errorCode: string) {
   const params = new URLSearchParams({ error: errorCode })
-  return NextResponse.redirect(new URL(`/login?${params.toString()}`, origin))
-}
-
-function resolveRedirectUrl(next: string, requestUrl: string): string {
-  const origin = new URL(requestUrl).origin
-
-  if (next.startsWith("/")) {
-    return `${origin}${next}`
-  }
-
-  return origin
-}
-
-function resolveNextPath(type: string | null, nextParam: string | null): string {
-  if (nextParam) {
-    return nextParam
-  }
-
-  if (type === "recovery" || type === "email_change") {
-    return "/change-password"
-  }
-
-  if (type === "signup" || type === "invite" || type === "magiclink") {
-    return defaultAuthenticatedPath
-  }
-
-  return "/"
+  return NextResponse.redirect(
+    new URL(`/login?${params.toString()}`, getSiteUrl())
+  )
 }
 
 export async function GET(request: Request) {
@@ -42,26 +18,25 @@ export async function GET(request: Request) {
   const tokenHash = requestUrl.searchParams.get("token_hash")
   const type = requestUrl.searchParams.get("type")
   const code = requestUrl.searchParams.get("code")
-  const next = resolveNextPath(type, requestUrl.searchParams.get("next"))
+  const nextPath = getAuthConfirmNextPath(type, requestUrl.searchParams.get("next"))
 
   const supabase = await createClient()
   const isRecoveryFlow =
-    type === "recovery" || next.includes("change-password")
+    type === "recovery" || nextPath.includes("change-password")
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
       mapSupabaseAuthError(error)
-      return loginRedirect(
-        request.url,
+      return redirectToLogin(
         isRecoveryFlow
           ? "recovery_confirmation_failed"
           : "email_confirmation_failed"
       )
     }
 
-    return NextResponse.redirect(resolveRedirectUrl(next, request.url))
+    return NextResponse.redirect(buildSitePath(nextPath))
   }
 
   if (tokenHash && type) {
@@ -72,16 +47,15 @@ export async function GET(request: Request) {
 
     if (error) {
       mapSupabaseAuthError(error)
-      return loginRedirect(
-        request.url,
+      return redirectToLogin(
         type === "recovery" || type === "email_change"
           ? "recovery_confirmation_failed"
           : "email_confirmation_failed"
       )
     }
 
-    return NextResponse.redirect(resolveRedirectUrl(next, request.url))
+    return NextResponse.redirect(buildSitePath(nextPath))
   }
 
-  return loginRedirect(request.url, "invalid_confirmation_link")
+  return redirectToLogin("invalid_confirmation_link")
 }

@@ -6,19 +6,11 @@ import {
   clearCanvaOAuthCookies,
   readCanvaOAuthCookies,
 } from "@/lib/canva/oauth-cookies"
-import { dashboardRoutes } from "@/lib/dashboard/routes"
+import { getCanvaOAuthReturnTo } from "@/lib/canva/oauth-return"
 import { getSiteUrl } from "@/lib/env"
 import { saveCanvaConnection } from "@/lib/services/canva/connection"
 import { CanvaServiceError } from "@/lib/services/canva/errors"
 import { requireAuthenticatedUserId } from "@/lib/services/canva/require-user"
-
-function resolveCanvaReturnTo(value: string | undefined) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return dashboardRoutes.settings.general
-  }
-
-  return value
-}
 
 function canvaRedirect(path: string, query: Record<string, string> = {}) {
   const params = new URLSearchParams(query)
@@ -35,7 +27,7 @@ export async function GET(request: Request) {
     requestUrl.searchParams.get("error_description") ?? "Canva authorization was denied"
 
   const oauthCookies = await readCanvaOAuthCookies()
-  const returnTo = resolveCanvaReturnTo(oauthCookies?.returnTo)
+  const returnTo = getCanvaOAuthReturnTo(oauthCookies?.returnTo)
 
   if (canvaError) {
     await clearCanvaOAuthCookies()
