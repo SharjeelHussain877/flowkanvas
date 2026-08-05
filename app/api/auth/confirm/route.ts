@@ -2,6 +2,10 @@ import type { EmailOtpType } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
 import { getAuthConfirmNextPath } from "@/lib/auth/confirm-redirect"
+import {
+  PASSWORD_RECOVERY_COOKIE,
+  passwordRecoveryCookieOptions,
+} from "@/lib/auth/password-recovery-cookie"
 import { createClient } from "@/lib/supabase/server"
 import { buildSitePath, getSiteUrl } from "@/lib/env"
 import { mapSupabaseAuthError } from "@/lib/services/auth/errors"
@@ -11,6 +15,17 @@ function redirectToLogin(errorCode: string) {
   return NextResponse.redirect(
     new URL(`/login?${params.toString()}`, getSiteUrl())
   )
+}
+
+function withRecoveryCookie(response: NextResponse, isRecoveryFlow: boolean) {
+  if (isRecoveryFlow) {
+    response.cookies.set(
+      PASSWORD_RECOVERY_COOKIE,
+      "1",
+      passwordRecoveryCookieOptions
+    )
+  }
+  return response
 }
 
 export async function GET(request: Request) {
@@ -36,7 +51,10 @@ export async function GET(request: Request) {
       )
     }
 
-    return NextResponse.redirect(buildSitePath(nextPath))
+    return withRecoveryCookie(
+      NextResponse.redirect(buildSitePath(nextPath)),
+      isRecoveryFlow
+    )
   }
 
   if (tokenHash && type) {
@@ -54,7 +72,10 @@ export async function GET(request: Request) {
       )
     }
 
-    return NextResponse.redirect(buildSitePath(nextPath))
+    return withRecoveryCookie(
+      NextResponse.redirect(buildSitePath(nextPath)),
+      isRecoveryFlow
+    )
   }
 
   return redirectToLogin("invalid_confirmation_link")

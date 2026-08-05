@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ApiError, apiClient } from "@/lib/api/client"
 import { parseImplicitAuthHash } from "@/lib/auth/implicit-auth-hash"
 import { queryKeys } from "@/lib/query/keys"
+import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
 import {
   changePasswordSchema,
   type ChangePasswordInput,
@@ -219,6 +220,7 @@ export function ChangePasswordForm() {
   const passwordValue = form.watch("password")
 
   const changePasswordMutation = useMutation({
+    meta: backgroundMutationMeta,
     mutationFn: (data: ChangePasswordInput) =>
       apiClient<ChangePasswordResponse>("/api/auth/change-password", {
         method: "POST",
@@ -226,7 +228,7 @@ export function ChangePasswordForm() {
       }),
     onSuccess: () => {
       form.clearErrors("root")
-      router.push("/dashboard")
+      router.push("/login?notice=password_reset")
     },
     onError: (error) => {
       form.setError("root", {

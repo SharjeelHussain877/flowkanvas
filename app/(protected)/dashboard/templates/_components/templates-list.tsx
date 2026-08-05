@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 import { TemplatePreviewCard } from "@/app/(protected)/dashboard/templates/_components/template-preview-card"
-import { TemplatesGridSkeleton } from "@/app/(protected)/dashboard/templates/_components/templates-grid-skeleton"
 import { useStaggeredReveal } from "@/app/(protected)/dashboard/templates/_components/use-staggered-reveal"
 import { ConnectCanvaButton } from "@/components/canva/connect-canva-button"
+import { CanvaIcon } from "@/components/canva/canva-icon"
+import { PoweredByCanva } from "@/components/canva/powered-by-canva"
 import { Spinner } from "@/components/feedback/spinner"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,12 +39,8 @@ type TemplatesListProps = {
 
 function TemplatesGridLoader() {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-        <Spinner className="size-5" label="Loading templates" />
-        <span>Loading templates from Canva...</span>
-      </div>
-      <TemplatesGridSkeleton count={8} />
+    <div className="flex min-h-[40vh] items-center justify-center">
+      <Spinner className="size-6" label="Loading templates" />
     </div>
   )
 }
@@ -125,9 +122,13 @@ export function TemplatesList({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Connect Canva</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <CanvaIcon size={24} />
+            Connect to Canva
+          </CardTitle>
           <CardDescription>
-            Authorize flowkanvas to access your Canva designs and brand templates.
+            Works with Canva — authorize flowkanvas to import your designs and
+            brand templates.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-start gap-4">
@@ -143,6 +144,7 @@ export function TemplatesList({
             </p>
           ) : null}
           <ConnectCanvaButton returnTo={dashboardRoutes.templates} />
+          <PoweredByCanva />
         </CardContent>
       </Card>
     )
@@ -162,10 +164,15 @@ export function TemplatesList({
         </p>
       ) : null}
 
-      {data.brandTemplatesError ? (
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Brand templates could not be loaded: {data.brandTemplatesError}
+          Open a design to view it in Canva. Manage connection in Settings.
         </p>
+        <PoweredByCanva />
+      </div>
+
+      {data.brandTemplatesError ? (
+        <p className="text-sm text-muted-foreground">{data.brandTemplatesError}</p>
       ) : null}
 
       {data.items.length === 0 ? (
@@ -213,7 +220,7 @@ export function TemplatesList({
       )}
 
       <p className="text-sm text-muted-foreground">
-        Need to manage the connection?{" "}
+        Need to disconnect or check account details?{" "}
         <Link
           href={dashboardRoutes.settings.general}
           className="text-brand-teal underline-offset-4 hover:underline"

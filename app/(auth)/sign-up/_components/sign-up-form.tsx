@@ -21,6 +21,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { buildAuthHref } from "@/lib/auth/email-search-param"
 import { ApiError, apiClient } from "@/lib/api/client"
+import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
 import {
   signUpSchema,
   type SignUpInput,
@@ -52,6 +53,7 @@ export function SignUpForm({
   const passwordValue = form.watch("password")
 
   const signUpMutation = useMutation({
+    meta: backgroundMutationMeta,
     mutationFn: (data: SignUpInput) =>
       apiClient<SignUpResponse>("/api/auth/sign-up", {
         method: "POST",

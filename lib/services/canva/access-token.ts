@@ -6,20 +6,35 @@ import {
 } from "@/lib/services/canva/connection"
 import { CanvaServiceError } from "@/lib/services/canva/errors"
 import { requireAuthenticatedUserId } from "@/lib/services/canva/require-user"
+import { logSecurityEvent } from "@/lib/security/audit-log"
 
 export async function disconnectCanvaConnection() {
   const userId = await requireAuthenticatedUserId()
-  const connection = await getCanvaConnectionTokens(userId)
 
-  if (connection?.refresh_token) {
-    try {
-      await revokeCanvaToken(connection.refresh_token)
-    } catch {
-      // Still remove the local connection if Canva revoke fails.
+  try {
+    const connection = await getCanvaConnectionTokens(userId)
+
+    if (connection?.refresh_token) {
+      try {
+        await revokeCanvaToken(connection.refresh_token)
+      } catch {
+        // Still remove the local connection if Canva revoke fails.
+      }
     }
-  }
 
-  await deleteCanvaConnection(userId)
+    await deleteCanvaConnection(userId)
+    logSecurityEvent({
+      event: "canva.disconnect.success",
+      userId,
+    })
+  } catch (error) {
+    logSecurityEvent({
+      event: "canva.disconnect.failure",
+      userId,
+      message: error instanceof Error ? error.message : "disconnect failed",
+    })
+    throw error
+  }
 }
 
 export async function getValidCanvaAccessToken(userId: string): Promise<string> {
@@ -36,8 +51,16 @@ export async function getValidCanvaAccessToken(userId: string): Promise<string> 
     return connection.access_token
   }
 
-  const refreshed = await refreshCanvaAccessToken(connection.refresh_token)
-  await updateCanvaTokens(userId, refreshed)
-
-  return refreshed.access_token
+  try {
+    const refreshed = await refreshCanvaAccessToken(connection.refresh_token)
+    await updateCanvaTokens(userId, refreshed)
+    return refreshed.access_token
+  } catch (error) {
+    logSecurityEvent({
+      event: "canva.token.refresh.failure",
+      userId,
+      message: error instanceof Error ? error.message : "refresh failed",
+    })
+    throw error
+  }
 }

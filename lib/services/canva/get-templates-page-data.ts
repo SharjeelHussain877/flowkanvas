@@ -108,9 +108,9 @@ export async function getCanvaTemplatesPageData(): Promise<CanvaTemplatesPageDat
   try {
     const brandTemplates = await listCanvaBrandTemplates(userId)
     items.push(...brandTemplates.map(mapBrandTemplate))
-  } catch (error) {
+  } catch {
     brandTemplatesError =
-      error instanceof Error ? error.message : "Could not load brand templates"
+      "Brand templates could not be loaded. Your Canva plan may not include brand templates, or access was denied. Designs below still work."
   }
 
   items.sort((left, right) => right.updatedAtUnix - left.updatedAtUnix)

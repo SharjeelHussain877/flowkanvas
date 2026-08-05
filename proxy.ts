@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr"
 import { type NextRequest, NextResponse } from "next/server"
 
+import { PASSWORD_RECOVERY_COOKIE } from "@/lib/auth/password-recovery-cookie"
 import {
   defaultAuthenticatedPath,
   defaultUnauthenticatedPath,
@@ -59,6 +60,22 @@ export async function proxy(request: NextRequest) {
   const isChangePasswordRoute =
     pathname === "/change-password" ||
     pathname.startsWith("/change-password/")
+
+  const isPasswordRecovery =
+    request.cookies.get(PASSWORD_RECOVERY_COOKIE)?.value === "1"
+
+  // Recovery sessions may only stay on the change-password screen (pages only).
+  if (
+    isPasswordRecovery &&
+    !isChangePasswordRoute &&
+    !pathname.startsWith("/api/")
+  ) {
+    const changePasswordUrl = request.nextUrl.clone()
+    changePasswordUrl.pathname = "/change-password"
+    changePasswordUrl.search = ""
+    changePasswordUrl.hash = ""
+    return NextResponse.redirect(changePasswordUrl)
+  }
 
   if (user && isAuthRoute(pathname) && !isChangePasswordRoute) {
     const dashboardUrl = request.nextUrl.clone()

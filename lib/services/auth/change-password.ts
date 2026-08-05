@@ -3,8 +3,13 @@ import type {
   ChangePasswordResponse,
   ValidateResetTokenResponse,
 } from "@/schemas/auth/change-password"
+import {
+  PASSWORD_RECOVERY_COOKIE,
+  passwordRecoveryCookieOptions,
+} from "@/lib/auth/password-recovery-cookie"
 import { createClient } from "@/lib/supabase/server"
 import { mapSupabaseAuthError } from "@/lib/services/auth/errors"
+import { cookies } from "next/headers"
 
 export class ResetTokenError extends Error {
   code: "INVALID_TOKEN" | "EXPIRED_TOKEN"
@@ -66,6 +71,21 @@ export async function changePassword(
   if (error) {
     throw mapSupabaseAuthError(error)
   }
+
+  // Recovery must not leave the user signed in — require a fresh login.
+  const { error: signOutError } = await supabase.auth.signOut({
+    scope: "local",
+  })
+
+  if (signOutError) {
+    throw mapSupabaseAuthError(signOutError)
+  }
+
+  const cookieStore = await cookies()
+  cookieStore.set(PASSWORD_RECOVERY_COOKIE, "", {
+    ...passwordRecoveryCookieOptions,
+    maxAge: 0,
+  })
 
   return {
     success: true,

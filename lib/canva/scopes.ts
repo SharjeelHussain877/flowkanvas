@@ -1,4 +1,7 @@
-/** Scopes enabled in Canva Developer Portal (Reading and writing section). */
+/**
+ * Scopes enabled in Canva Developer Portal → Reading and writing.
+ * Keep CANVA_SCOPES in .env identical to this list.
+ */
 export const CANVA_TEMPLATE_SCOPES = [
   "profile:read",
   "app:read",
@@ -7,6 +10,9 @@ export const CANVA_TEMPLATE_SCOPES = [
   "asset:write",
   "brandtemplate:content:read",
   "brandtemplate:content:write",
+  "brandtemplate:meta:read",
+  "comment:read",
+  "comment:write",
   "design:meta:read",
   "design:content:read",
   "design:content:write",

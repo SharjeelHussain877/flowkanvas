@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Instrument_Serif, Open_Sans } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/components/providers/app-providers";
+import { RecoveryHashRedirect } from "@/components/auth/recovery-hash-redirect";
 import { cn } from "@/lib/utils";
 
 const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-sans" });
@@ -34,7 +35,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          <RecoveryHashRedirect />
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

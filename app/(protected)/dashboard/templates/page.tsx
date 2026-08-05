@@ -41,7 +41,7 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
       description={
         initialData.connected
           ? "Designs and brand templates from your connected Canva account."
-          : "Connect Canva to import designs and brand templates."
+          : "Connect to Canva to import designs and brand templates."
       }
       action={
         <Button asChild className={cn(authPrimaryButtonClassName, "px-4")}>

@@ -60,6 +60,9 @@ export type Database = {
           scopes: string
           connected_at: string
           updated_at: string
+          canva_user_id: string | null
+          canva_team_id: string | null
+          display_name: string | null
         }
         Insert: {
           user_id: string
@@ -70,6 +73,9 @@ export type Database = {
           scopes: string
           connected_at?: string
           updated_at?: string
+          canva_user_id?: string | null
+          canva_team_id?: string | null
+          display_name?: string | null
         }
         Update: {
           user_id?: string
@@ -80,6 +86,9 @@ export type Database = {
           scopes?: string
           connected_at?: string
           updated_at?: string
+          canva_user_id?: string | null
+          canva_team_id?: string | null
+          display_name?: string | null
         }
         Relationships: [
           {

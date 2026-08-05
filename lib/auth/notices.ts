@@ -1,5 +1,7 @@
 export const AUTH_NOTICES = {
   confirm_email: "Please check your email to confirm your account.",
+  password_reset:
+    "Password updated. Sign in with your new password to continue.",
 } as const
 
 export type AuthNoticeCode = keyof typeof AUTH_NOTICES

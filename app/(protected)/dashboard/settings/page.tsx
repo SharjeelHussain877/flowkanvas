@@ -50,6 +50,9 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     connected: false,
     connectedAt: null,
     scopes: null,
+    displayName: null,
+    canvaUserId: null,
+    canvaTeamId: null,
   }
 
   if (user) {

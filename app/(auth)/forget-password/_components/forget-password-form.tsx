@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { ApiError, apiClient } from "@/lib/api/client"
 import { buildAuthHref } from "@/lib/auth/email-search-param"
 import { getForgetPasswordErrorMessage } from "@/lib/auth/forget-password-errors"
+import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
 import {
   forgetPasswordSchema,
   type ForgetPasswordInput,
@@ -42,6 +43,7 @@ export function ForgetPasswordForm({
   const emailValue = form.watch("email")
 
   const resetMutation = useMutation({
+    meta: backgroundMutationMeta,
     mutationFn: (data: ForgetPasswordInput) =>
       apiClient<ForgetPasswordResponse>("/api/auth/forget-password", {
         method: "POST",

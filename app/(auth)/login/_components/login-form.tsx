@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query"
 import { ArrowRight, AtSign, Eye, EyeOff, Lock } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 
 import { AuthSubmitButton } from "@/app/(auth)/_components/auth-submit-button"
@@ -19,8 +19,8 @@ import {
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { buildAuthHref } from "@/lib/auth/email-search-param"
-import { parseImplicitAuthHash } from "@/lib/auth/implicit-auth-hash"
 import { apiClient } from "@/lib/api/client"
+import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
 import {
   loginSchema,
   type LoginInput,
@@ -41,14 +41,6 @@ export function LoginForm({
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
 
-  useEffect(() => {
-    const parsed = parseImplicitAuthHash(window.location.hash)
-
-    if (parsed?.type === "recovery") {
-      router.replace(`/change-password${window.location.hash}`)
-    }
-  }, [router])
-
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -60,6 +52,7 @@ export function LoginForm({
   const emailValue = form.watch("email")
 
   const loginMutation = useMutation({
+    meta: backgroundMutationMeta,
     mutationFn: (data: LoginInput) =>
       apiClient<LoginResponse>("/api/auth/login", {
         method: "POST",

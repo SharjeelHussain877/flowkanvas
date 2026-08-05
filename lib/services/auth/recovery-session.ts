@@ -2,8 +2,13 @@ import type {
   RecoverySessionInput,
   RecoverySessionResponse,
 } from "@/schemas/auth/recovery-session"
+import {
+  PASSWORD_RECOVERY_COOKIE,
+  passwordRecoveryCookieOptions,
+} from "@/lib/auth/password-recovery-cookie"
 import { createClient } from "@/lib/supabase/server"
 import { mapSupabaseAuthError } from "@/lib/services/auth/errors"
+import { cookies } from "next/headers"
 
 export async function establishRecoverySession(
   input: RecoverySessionInput
@@ -18,6 +23,13 @@ export async function establishRecoverySession(
   if (error) {
     throw mapSupabaseAuthError(error)
   }
+
+  const cookieStore = await cookies()
+  cookieStore.set(
+    PASSWORD_RECOVERY_COOKIE,
+    "1",
+    passwordRecoveryCookieOptions
+  )
 
   return { success: true }
 }

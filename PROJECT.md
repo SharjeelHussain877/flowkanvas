@@ -15,7 +15,14 @@
 | Templates loading | `app/(protected)/dashboard/templates/_components/templates-page-skeleton.tsx` | Static UI |
 | Templates list | `app/(protected)/dashboard/templates/_components/templates-list.tsx` | Wired |
 | Template preview card | `app/(protected)/dashboard/templates/_components/template-preview-card.tsx` | Wired |
-| Connect Canva button | `components/canva/connect-canva-button.tsx` | Wired |
+| Connect Canva button | `components/canva/connect-canva-button.tsx` | Wired (Canva UI guidelines) |
+| Canva icon | `components/canva/canva-icon.tsx` | Shared asset |
+| Canva icon SVG | `public/brand/canva/canva-icon.svg` | Official asset |
+| Powered by Canva | `components/canva/powered-by-canva.tsx` | Shared UI |
+| Token cipher | `lib/crypto/token-cipher.ts` | Security |
+| Security audit log | `lib/security/audit-log.ts` | Security |
+| API rate limit | `lib/api/rate-limit.ts` | Security |
+| Accounts security migration | `supabase/migrations/20260805140000_accounts_security.sql` | SQL |
 | Canva templates API | `app/api/canva/templates/route.ts` | Wired |
 | New template page | `app/(protected)/dashboard/templates/new/page.tsx` | Static UI |
 | Template editor | `app/(protected)/dashboard/templates/[slug]/page.tsx` | Static UI |
@@ -47,8 +54,27 @@
 | Dashboard logout button | `components/dashboard/logout-button.tsx` | Wired |
 | Sidebar user menu | `components/dashboard/sidebar-user-menu.tsx` | Static UI |
 | Brand logo | `components/brand-logo.tsx` | Shared asset |
+| Recovery hash redirect | `components/auth/recovery-hash-redirect.tsx` | Wired |
+| Password recovery cookie | `lib/auth/password-recovery-cookie.ts` | Config |
 
 ## Changelog
+
+### 2026-08-05 (canva security + practices)
+- Security: Canva scopes match Developer Portal selection; AES-GCM encrypted tokens via admin client (RLS denies end-user token reads); Canva user/team IDs stored; rate limits + security audit logs.
+- Practices: Connected Canva display name, “Works with Canva” / Powered by Canva, friendlier brand-template errors, template tooltips + alt text.
+- Spinner: single-ring loader in `components/feedback/spinner.tsx`.
+
+### 2026-08-05 (templates loader)
+- Templates list loading state is a simple centered spinner (no grid skeleton + status text).
+
+### 2026-08-05 (password recovery flow)
+- Recovery hash on any URL (`/#...&type=recovery`) redirects to `/change-password`; recovery sessions cannot open dashboard; after reset user is signed out and sent to login.
+
+### 2026-08-05 (canva ui guidelines)
+- Connect buttons follow [Canva UI guidelines](https://www.canva.dev/docs/connect/guidelines/user-interface/): official icon logo (≥8px padding) + “Connect to Canva” text; no script logo; settings + templates reuse `ConnectCanvaButton`.
+
+### 2026-08-05 (auth button loader)
+- Auth submit mutations (login, sign-up, forget-password, change-password) use `backgroundMutationMeta` so only the button spinner shows — no global page spinner.
 
 ### 2026-07-28 (site url)
 - Auth redirects (confirm, Canva OAuth, invites, sign-up email) always use `NEXT_PUBLIC_SITE_URL` — no request-origin localhost fallback.

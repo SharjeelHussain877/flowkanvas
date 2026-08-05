@@ -6,12 +6,7 @@ const CANVA_API_BASE = "https://api.canva.com/rest/v1"
 
 type CanvaApiQuery = Record<string, string | number | undefined>
 
-export async function canvaApiGet<T>(
-  userId: string,
-  path: string,
-  query?: CanvaApiQuery
-): Promise<T> {
-  const accessToken = await getValidCanvaAccessToken(userId)
+function buildCanvaUrl(path: string, query?: CanvaApiQuery) {
   const url = new URL(`${CANVA_API_BASE}${path}`)
 
   if (query) {
@@ -22,7 +17,15 @@ export async function canvaApiGet<T>(
     }
   }
 
-  const response = await fetch(url, {
+  return url
+}
+
+export async function canvaApiGetWithToken<T>(
+  accessToken: string,
+  path: string,
+  query?: CanvaApiQuery
+): Promise<T> {
+  const response = await fetch(buildCanvaUrl(path, query), {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -41,4 +44,13 @@ export async function canvaApiGet<T>(
   }
 
   return body as T
+}
+
+export async function canvaApiGet<T>(
+  userId: string,
+  path: string,
+  query?: CanvaApiQuery
+): Promise<T> {
+  const accessToken = await getValidCanvaAccessToken(userId)
+  return canvaApiGetWithToken<T>(accessToken, path, query)
 }
