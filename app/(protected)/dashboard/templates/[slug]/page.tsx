@@ -22,7 +22,7 @@ export default async function TemplatePage({ params }: TemplatePageProps) {
   return (
     <DashboardPage
       title={template.title}
-      description={`Template workspace — ${isDraft ? "draft" : "saved"} template.`}
+      description={`Template workspace - ${isDraft ? "draft" : "saved"} template.`}
       action={
         <Badge variant={isDraft ? "secondary" : "default"}>
           {isDraft ? "Draft" : "Saved"}

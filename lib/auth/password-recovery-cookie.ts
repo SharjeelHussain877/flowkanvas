@@ -5,5 +5,5 @@ export const passwordRecoveryCookieOptions = {
   sameSite: "lax" as const,
   secure: process.env.NODE_ENV === "production",
   path: "/",
-  maxAge: 60 * 60, // 1 hour — recovery links expire sooner anyway
+  maxAge: 60 * 60, // 1 hour - recovery links expire sooner anyway
 }

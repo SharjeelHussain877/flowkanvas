@@ -4,8 +4,8 @@
 
 | Element | Path | Status |
 |---------|------|--------|
-| Dashboard shell | `components/dashboard/dashboard-shell.tsx` | Static UI |
-| App sidebar (memo) | `components/dashboard/app-sidebar.tsx` | Static UI |
+| Dashboard shell | `components/dashboard/dashboard-shell.tsx` | Wired (user in sidebar) |
+| App sidebar (memo) | `components/dashboard/app-sidebar.tsx` | Wired (user props) |
 | Sidebar nav link | `components/dashboard/sidebar-nav-link.tsx` | Static UI |
 | Dashboard page wrapper | `components/dashboard/dashboard-page.tsx` | Static UI |
 | Dashboard back navigation | `lib/dashboard/back-navigation.ts` | Config |
@@ -52,12 +52,18 @@
 | Dashboard routes | `lib/dashboard/routes.ts` | Config |
 | Dashboard mock data | `lib/dashboard/mock-data.ts` | Mock |
 | Dashboard logout button | `components/dashboard/logout-button.tsx` | Wired |
-| Sidebar user menu | `components/dashboard/sidebar-user-menu.tsx` | Static UI |
+| Sidebar user menu | `components/dashboard/sidebar-user-menu.tsx` | Wired (current user) |
 | Brand logo | `components/brand-logo.tsx` | Shared asset |
 | Recovery hash redirect | `components/auth/recovery-hash-redirect.tsx` | Wired |
 | Password recovery cookie | `lib/auth/password-recovery-cookie.ts` | Config |
 
 ## Changelog
+
+### 2026-08-05 (dashboard back history)
+- Dashboard page back arrow uses browser history (`router.back`); falls back to the previous route map only when history is empty.
+
+### 2026-08-05 (sidebar user)
+- Dashboard sidebar footer shows the authenticated user’s name, email, and avatar (from Supabase Auth metadata) instead of mock data.
 
 ### 2026-08-05 (canva security + practices)
 - Security: Canva scopes match Developer Portal selection; AES-GCM encrypted tokens via admin client (RLS denies end-user token reads); Canva user/team IDs stored; rate limits + security audit logs.
@@ -74,10 +80,10 @@
 - Connect buttons follow [Canva UI guidelines](https://www.canva.dev/docs/connect/guidelines/user-interface/): official icon logo (≥8px padding) + “Connect to Canva” text; no script logo; settings + templates reuse `ConnectCanvaButton`.
 
 ### 2026-08-05 (auth button loader)
-- Auth submit mutations (login, sign-up, forget-password, change-password) use `backgroundMutationMeta` so only the button spinner shows — no global page spinner.
+- Auth submit mutations (login, sign-up, forget-password, change-password) use `backgroundMutationMeta` so only the button spinner shows - no global page spinner.
 
 ### 2026-07-28 (site url)
-- Auth redirects (confirm, Canva OAuth, invites, sign-up email) always use `NEXT_PUBLIC_SITE_URL` — no request-origin localhost fallback.
+- Auth redirects (confirm, Canva OAuth, invites, sign-up email) always use `NEXT_PUBLIC_SITE_URL` - no request-origin localhost fallback.
 
 ### 2026-07-26 (templates loading UX)
 - Templates: client fetch shows inline spinner + grid skeleton; cards reveal one-by-one with fade-in.
@@ -90,7 +96,7 @@
 - `/api/canva/templates` + services call Canva REST API; OAuth connect supports `returnTo` redirect back to templates.
 
 ### 2026-07-26 (canva oauth)
-- Settings: **Connect Canva** via OAuth 2.0 PKCE — `/api/auth/canva/connect` → Canva authorize → `/api/auth/canva/callback`.
+- Settings: **Connect Canva** via OAuth 2.0 PKCE - `/api/auth/canva/connect` → Canva authorize → `/api/auth/canva/callback`.
 - Tokens stored in `accounts` (RLS); settings shows connection status + disconnect; token refresh helper for future API calls.
 
 ### 2026-07-26 (templates)

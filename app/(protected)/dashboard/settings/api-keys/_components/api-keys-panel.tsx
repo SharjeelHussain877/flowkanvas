@@ -320,7 +320,7 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
                             </Button>
                           ) : (
                             <span className="text-xs text-muted-foreground">
-                              —
+                              -
                             </span>
                           )}
                         </td>

@@ -72,7 +72,7 @@ export async function changePassword(
     throw mapSupabaseAuthError(error)
   }
 
-  // Recovery must not leave the user signed in — require a fresh login.
+  // Recovery must not leave the user signed in - require a fresh login.
   const { error: signOutError } = await supabase.auth.signOut({
     scope: "local",
   })

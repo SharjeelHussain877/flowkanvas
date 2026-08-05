@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 
 import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { DashboardLogoutButton } from "@/components/dashboard/logout-button"
+import type { SidebarUser } from "@/components/dashboard/sidebar-user-menu"
 import {
   SidebarInset,
   SidebarProvider,
@@ -12,12 +13,13 @@ import {
 
 type DashboardShellProps = {
   children: ReactNode
+  user: SidebarUser
 }
 
-export function DashboardShell({ children }: DashboardShellProps) {
+export function DashboardShell({ children, user }: DashboardShellProps) {
   return (
     <SidebarProvider defaultOpen>
-      <AppSidebar />
+      <AppSidebar user={user} />
       <SidebarInset className="min-h-svh bg-brand-background font-sans">
         <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground">
           <SidebarTrigger className="-ms-1" />

@@ -15,7 +15,7 @@ type SecurityEvent = {
 }
 
 /**
- * Structured security log — never include client secrets or OAuth tokens.
+ * Structured security log - never include client secrets or OAuth tokens.
  */
 export function logSecurityEvent(entry: SecurityEvent) {
   const payload = {

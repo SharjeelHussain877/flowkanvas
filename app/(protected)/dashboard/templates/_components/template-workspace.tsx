@@ -29,7 +29,7 @@ export function TemplateWorkspace({ template, isNew = false }: TemplateWorkspace
         <CardContent>
           <div className="flex min-h-80 items-center justify-center rounded-xl border border-dashed border-border bg-brand-surface text-sm text-muted-foreground">
             {isNew
-              ? "Empty template canvas — add your first block to get started."
+              ? "Empty template canvas - add your first block to get started."
               : `Template canvas for ${template.title}`}
           </div>
         </CardContent>
@@ -43,7 +43,7 @@ export function TemplateWorkspace({ template, isNew = false }: TemplateWorkspace
         <CardContent className="space-y-3 text-sm">
           <div className="flex items-center justify-between gap-3">
             <span className="text-muted-foreground">Slug</span>
-            <span className="font-medium">{isNew ? "—" : template.slug}</span>
+            <span className="font-medium">{isNew ? "-" : template.slug}</span>
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className="text-muted-foreground">Last updated</span>

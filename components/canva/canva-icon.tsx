@@ -2,7 +2,7 @@ import Image from "next/image"
 
 import { cn } from "@/lib/utils"
 
-/** Official Canva icon logo — use inside UI below 50px; keep ≥8px padding around it. */
+/** Official Canva icon logo - use inside UI below 50px; keep ≥8px padding around it. */
 export const CANVA_ICON_SRC = "/brand/canva/canva-icon.svg"
 
 export interface CanvaIconProps {

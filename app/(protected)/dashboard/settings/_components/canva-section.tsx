@@ -115,7 +115,7 @@ export function CanvaSection({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1 space-y-2">
             <CardDescription>
-              Works with Canva — connect your account to import designs and brand
+              Works with Canva - connect your account to import designs and brand
               templates into flowkanvas.
             </CardDescription>
 

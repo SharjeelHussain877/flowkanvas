@@ -127,7 +127,7 @@ export function TemplatesList({
             Connect to Canva
           </CardTitle>
           <CardDescription>
-            Works with Canva — authorize flowkanvas to import your designs and
+            Works with Canva - authorize flowkanvas to import your designs and
             brand templates.
           </CardDescription>
         </CardHeader>
@@ -164,12 +164,12 @@ export function TemplatesList({
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           Open a design to view it in Canva. Manage connection in Settings.
         </p>
         <PoweredByCanva />
-      </div>
+      </div> */}
 
       {data.brandTemplatesError ? (
         <p className="text-sm text-muted-foreground">{data.brandTemplatesError}</p>

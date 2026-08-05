@@ -1,8 +1,7 @@
 "use client"
 
 import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import type { ReactNode } from "react"
 
 import { getDashboardBackNavigation } from "@/lib/dashboard/back-navigation"
@@ -26,10 +25,22 @@ export function DashboardPage({
   className,
 }: DashboardPageProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const back =
     backHref !== undefined
       ? { href: backHref, label: "previous page" }
       : getDashboardBackNavigation(pathname)
+
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back()
+      return
+    }
+
+    if (back?.href) {
+      router.push(back.href)
+    }
+  }
 
   return (
     <div className={cn("flex flex-1 flex-col p-6 md:p-8", className)}>
@@ -37,13 +48,14 @@ export function DashboardPage({
         <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-3">
             {back ? (
-              <Link
-                href={back.href}
+              <button
+                type="button"
+                onClick={handleBack}
                 aria-label={`Back to ${back.label}`}
                 className="inline-flex shrink-0 items-center justify-center rounded-md text-brand-text-muted transition-colors hover:text-brand-text-heading"
               >
                 <ArrowLeft className="size-5" aria-hidden />
-              </Link>
+              </button>
             ) : null}
             <h1 className="font-serif text-2xl font-normal tracking-tight text-brand-text-heading">
               {title}

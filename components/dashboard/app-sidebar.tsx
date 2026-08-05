@@ -12,7 +12,10 @@ import { memo, useEffect, useState } from "react"
 
 import { BrandLogo } from "@/components/brand-logo"
 import { SidebarNavLink } from "@/components/dashboard/sidebar-nav-link"
-import { SidebarUserMenu } from "@/components/dashboard/sidebar-user-menu"
+import {
+  SidebarUserMenu,
+  type SidebarUser,
+} from "@/components/dashboard/sidebar-user-menu"
 import {
   Collapsible,
   CollapsibleContent,
@@ -39,7 +42,11 @@ import { recentDraftTemplates } from "@/lib/dashboard/mock-data"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
-function AppSidebarComponent() {
+type AppSidebarProps = {
+  user: SidebarUser
+}
+
+function AppSidebarComponent({ user }: AppSidebarProps) {
   const pathname = usePathname()
   const { setOpenMobile, state } = useSidebar()
   const [recentsOpen, setRecentsOpen] = useState(true)
@@ -145,7 +152,7 @@ function AppSidebarComponent() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
-        <SidebarUserMenu />
+        <SidebarUserMenu user={user} />
       </SidebarFooter>
     </Sidebar>
   )

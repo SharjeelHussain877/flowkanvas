@@ -8,7 +8,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { memo } from "react"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,21 +23,26 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { cn } from "@/lib/utils"
 import { dashboardSettingsNav } from "@/lib/dashboard/routes"
+import { cn } from "@/lib/utils"
 
-const mockUser = {
-  name: "flowkanvas",
-  email: "builder@flowkanvas.app",
-  initials: "FK",
-} as const
+export type SidebarUser = {
+  name: string
+  email: string
+  initials: string
+  avatarUrl: string | null
+}
 
 const settingsIcons = {
   Settings: Settings2,
   "API Keys": KeyRound,
 } as const
 
-function SidebarUserMenuComponent() {
+type SidebarUserMenuProps = {
+  user: SidebarUser
+}
+
+function SidebarUserMenuComponent({ user }: SidebarUserMenuProps) {
   const pathname = usePathname()
 
   return (
@@ -47,18 +52,21 @@ function SidebarUserMenuComponent() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              tooltip={mockUser.name}
+              tooltip={user.name}
               className="outline-none focus:outline-none focus-visible:ring-0 focus-visible:outline-none data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="size-8 rounded-lg">
+                {user.avatarUrl ? (
+                  <AvatarImage src={user.avatarUrl} alt={user.name} />
+                ) : null}
                 <AvatarFallback className="rounded-lg bg-brand-teal/15 text-brand-teal">
-                  {mockUser.initials}
+                  {user.initials}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                <span className="truncate font-semibold">{mockUser.name}</span>
+                <span className="truncate font-semibold">{user.name}</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {mockUser.email}
+                  {user.email}
                 </span>
               </div>
             </SidebarMenuButton>
@@ -72,14 +80,17 @@ function SidebarUserMenuComponent() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                 <Avatar className="size-8 rounded-lg">
+                  {user.avatarUrl ? (
+                    <AvatarImage src={user.avatarUrl} alt={user.name} />
+                  ) : null}
                   <AvatarFallback className="rounded-lg bg-brand-teal/15 text-brand-teal">
-                    {mockUser.initials}
+                    {user.initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-start text-sm leading-tight">
-                  <span className="truncate font-semibold">{mockUser.name}</span>
+                  <span className="truncate font-semibold">{user.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {mockUser.email}
+                    {user.email}
                   </span>
                 </div>
               </div>

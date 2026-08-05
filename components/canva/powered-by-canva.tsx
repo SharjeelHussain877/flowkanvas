@@ -5,7 +5,7 @@ type PoweredByCanvaProps = {
   className?: string
 }
 
-/** Brand guideline entry-point mark — logo + “Powered by Canva”. */
+/** Brand guideline entry-point mark - logo + “Powered by Canva”. */
 export function PoweredByCanva({ className }: PoweredByCanvaProps) {
   return (
     <p

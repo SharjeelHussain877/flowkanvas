@@ -1,4 +1,4 @@
--- Connected OAuth accounts (Canva, etc.) — one row per user.
+-- Connected OAuth accounts (Canva, etc.) - one row per user.
 
 create table if not exists public.accounts (
   user_id uuid primary key references auth.users (id) on delete cascade,

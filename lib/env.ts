@@ -85,12 +85,12 @@ export function getCanvaScopes(): string {
   return configured
 }
 
-/** 32-byte key as 64 hex chars — encrypts Canva access/refresh tokens at rest. */
+/** 32-byte key as 64 hex chars - encrypts Canva access/refresh tokens at rest. */
 export function getCanvaTokenEncryptionKey(): string {
   return requireEnv("CANVA_TOKEN_ENCRYPTION_KEY")
 }
 
-/** Documented default for .env.example — not used unless copied into CANVA_SCOPES. */
+/** Documented default for .env.example - not used unless copied into CANVA_SCOPES. */
 export function getCanvaScopesExample(): string {
   return CANVA_TEMPLATE_SCOPES_STRING
 }
