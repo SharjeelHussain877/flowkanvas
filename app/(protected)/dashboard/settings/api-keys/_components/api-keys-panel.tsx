@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { AlertTriangle, Check, Copy, KeyRound, Plus } from "lucide-react"
+import { AlertTriangle, Check, Copy, KeyRound, Plus, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 
@@ -40,9 +40,11 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { PdfPlayground } from "@/components/canva/pdf-playground"
 import { apiClient } from "@/lib/api/client"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { queryKeys } from "@/lib/query/keys"
+import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
 import {
   createApiKeySchema,
   type CreateApiKeyInput,
@@ -87,6 +89,7 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
   const [secretCopied, setSecretCopied] = useState(false)
   const copyResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [revokeTarget, setRevokeTarget] = useState<PublicApiKey | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<PublicApiKey | null>(null)
 
   useEffect(() => {
     return () => {
@@ -125,6 +128,7 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
   })
 
   const createMutation = useMutation({
+    meta: backgroundMutationMeta,
     mutationFn: (input: CreateApiKeyInput) =>
       apiClient<CreateApiKeyApiResponse>("/api/api-keys", {
         method: "POST",
@@ -150,6 +154,7 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
   })
 
   const revokeMutation = useMutation({
+    meta: backgroundMutationMeta,
     mutationFn: (apiKeyId: string) =>
       apiClient<RevokeApiKeyApiResponse>(`/api/api-keys/${apiKeyId}/revoke`, {
         method: "POST",
@@ -164,6 +169,28 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
         })
       )
       setRevokeTarget(null)
+    },
+    onError: (error) => {
+      console.error(error)
+    },
+  })
+
+  const deleteMutation = useMutation({
+    meta: backgroundMutationMeta,
+    mutationFn: (apiKeyId: string) =>
+      apiClient<{ data: { id: string } }>(`/api/api-keys/${apiKeyId}`, {
+        method: "DELETE",
+      }),
+    onSuccess: (response) => {
+      queryClient.setQueryData<ApiKeysListResponse>(
+        queryKeys.apiKeys.list(),
+        (current) => ({
+          data: (current?.data ?? []).filter(
+            (key) => key.id !== response.data.id
+          ),
+        })
+      )
+      setDeleteTarget(null)
     },
     onError: (error) => {
       console.error(error)
@@ -275,13 +302,13 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] text-sm">
                   <thead>
-                    <tr className="border-b border-border/70 text-start text-muted-foreground">
-                      <th className="px-2 py-3 font-medium">Name</th>
-                      <th className="px-2 py-3 font-medium">Key</th>
-                      <th className="px-2 py-3 font-medium">Created</th>
-                      <th className="px-2 py-3 font-medium">Last used</th>
-                      <th className="px-2 py-3 font-medium">Status</th>
-                      <th className="px-2 py-3 text-end font-medium">
+                    <tr className="border-b border-border/70 text-left text-muted-foreground">
+                      <th className="px-2 py-3 text-left font-medium">Name</th>
+                      <th className="px-2 py-3 text-left font-medium">Key</th>
+                      <th className="px-2 py-3 text-left font-medium">Created</th>
+                      <th className="px-2 py-3 text-left font-medium">Last used</th>
+                      <th className="px-2 py-3 text-left font-medium">Status</th>
+                      <th className="sticky right-0 bg-background px-2 py-3 text-right font-medium">
                         Actions
                       </th>
                     </tr>
@@ -307,22 +334,38 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
                         <td className="px-2 py-4">
                           <ApiKeyStatusBadge revoked={key.revoked} />
                         </td>
-                        <td className="px-2 py-4 text-end">
-                          {!key.revoked ? (
+                        <td className="sticky right-0 bg-background px-2 py-4 text-end">
+                          <div className="flex flex-nowrap justify-end gap-2">
+                            {!key.revoked ? (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="shrink-0"
+                                disabled={
+                                  revokeMutation.isPending ||
+                                  deleteMutation.isPending
+                                }
+                                onClick={() => setRevokeTarget(key)}
+                              >
+                                Revoke
+                              </Button>
+                            ) : null}
                             <Button
                               type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled={revokeMutation.isPending}
-                              onClick={() => setRevokeTarget(key)}
+                              variant="destructive"
+                              size="icon"
+                              className="size-8 shrink-0"
+                              aria-label={`Delete ${key.name}`}
+                              disabled={
+                                revokeMutation.isPending ||
+                                deleteMutation.isPending
+                              }
+                              onClick={() => setDeleteTarget(key)}
                             >
-                              Revoke
+                              <Trash2 className="size-4" />
                             </Button>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              -
-                            </span>
-                          )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -342,10 +385,10 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
           </CardHeader>
           <CardContent>
             <pre className="overflow-x-auto rounded-xl bg-brand-navy p-4 text-xs text-brand-mist">
-              {`curl -X POST https://api.flowkanvas.app/v1/templates/template-id/generate \\
+              {`curl -X POST /api/v1/templates/DAHE-QhxVUM/generate?kind=design \\
   -H "Authorization: Bearer ${exampleMaskedKey}" \\
   -H "Content-Type: application/json" \\
-  -d '{"payload":{"name":"Aliyah"}}'`}
+  -d '{"payload":{"name":"Ali","father_name":"Ahmed"}}'`}
             </pre>
           </CardContent>
           <CardFooter>
@@ -355,6 +398,8 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
             </div>
           </CardFooter>
         </Card>
+
+        <PdfPlayground />
       </div>
 
       <Dialog open={createOpen} onOpenChange={handleCreateOpenChange}>
@@ -491,6 +536,44 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
               }}
             >
               Revoke key
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleteMutation.isPending) {
+            setDeleteTarget(null)
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete API key?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget
+                ? `"${deleteTarget.name}" will be removed permanently and will stop working immediately.`
+                : "This key will be removed permanently."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={(event) => {
+                event.preventDefault()
+
+                if (deleteTarget) {
+                  deleteMutation.mutate(deleteTarget.id)
+                }
+              }}
+            >
+              Delete key
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

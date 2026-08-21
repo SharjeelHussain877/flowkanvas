@@ -25,14 +25,16 @@ function accountsAdmin() {
   return createAdminClient()
 }
 
-export async function getCanvaConnectionStatus(): Promise<CanvaConnectionStatus> {
-  const userId = await requireAuthenticatedUserId()
+export async function getCanvaConnectionStatus(
+  userId?: string
+): Promise<CanvaConnectionStatus> {
+  const resolvedUserId = userId ?? (await requireAuthenticatedUserId())
   const supabase = accountsAdmin()
 
   const { data, error } = await supabase
     .from("accounts")
     .select("connected_at, scopes, display_name, canva_user_id, canva_team_id")
-    .eq("user_id", userId)
+    .eq("user_id", resolvedUserId)
     .maybeSingle()
 
   if (error) {

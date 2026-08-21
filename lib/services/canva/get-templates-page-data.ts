@@ -13,6 +13,7 @@ import { getCanvaDesignDimensionsMap } from "@/lib/services/canva/get-design-dim
 import { listCanvaBrandTemplates } from "@/lib/services/canva/list-brand-templates"
 import { listCanvaDesigns } from "@/lib/services/canva/list-designs"
 import { requireAuthenticatedUserId } from "@/lib/services/canva/require-user"
+import { isCanvaTokenRevokedError } from "@/lib/services/canva/token-revoked"
 import type {
   CanvaTemplateListItem,
   CanvaTemplatesPageData,
@@ -93,31 +94,47 @@ export async function getCanvaTemplatesPageData(): Promise<CanvaTemplatesPageDat
     }
   }
 
-  const designsResult = await listCanvaDesigns(userId)
-  const designDimensions = await getCanvaDesignDimensionsMap(
-    userId,
-    designsResult.map((design) => design.id)
-  )
-
-  const items = designsResult.map((design) =>
-    mapDesign(design, designDimensions.get(design.id) ?? null)
-  )
-
-  let brandTemplatesError: string | null = null
-
   try {
-    const brandTemplates = await listCanvaBrandTemplates(userId)
-    items.push(...brandTemplates.map(mapBrandTemplate))
-  } catch {
-    brandTemplatesError =
-      "Brand templates could not be loaded. Your Canva plan may not include brand templates, or access was denied. Designs below still work."
-  }
+    const designsResult = await listCanvaDesigns(userId)
+    const designDimensions = await getCanvaDesignDimensionsMap(
+      userId,
+      designsResult.map((design) => design.id)
+    )
 
-  items.sort((left, right) => right.updatedAtUnix - left.updatedAtUnix)
+    const items = designsResult.map((design) =>
+      mapDesign(design, designDimensions.get(design.id) ?? null)
+    )
 
-  return {
-    connected: true,
-    items,
-    brandTemplatesError,
+    let brandTemplatesError: string | null = null
+
+    try {
+      const brandTemplates = await listCanvaBrandTemplates(userId)
+      items.push(...brandTemplates.map(mapBrandTemplate))
+    } catch (error) {
+      if (isCanvaTokenRevokedError(error)) {
+        throw error
+      }
+
+      brandTemplatesError =
+        "Brand templates could not be loaded. Your Canva plan may not include brand templates, or access was denied. Designs below still work."
+    }
+
+    items.sort((left, right) => right.updatedAtUnix - left.updatedAtUnix)
+
+    return {
+      connected: true,
+      items,
+      brandTemplatesError,
+    }
+  } catch (error) {
+    if (isCanvaTokenRevokedError(error)) {
+      return {
+        connected: false,
+        items: [],
+        brandTemplatesError: null,
+      }
+    }
+
+    throw error
   }
 }

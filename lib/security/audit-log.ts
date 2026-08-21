@@ -4,6 +4,7 @@ type SecurityEventName =
   | "canva.disconnect.success"
   | "canva.disconnect.failure"
   | "canva.token.refresh.failure"
+  | "canva.token.revoked"
   | "canva.rate_limit.exceeded"
 
 type SecurityEvent = {

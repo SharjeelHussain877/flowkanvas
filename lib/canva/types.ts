@@ -44,3 +44,23 @@ export type CanvaApiErrorBody = {
   code?: string
   message?: string
 }
+
+export type CanvaDatasetFieldType = "text" | "image" | "chart"
+
+export type CanvaDatasetField = {
+  type: CanvaDatasetFieldType
+}
+
+export type CanvaDataset = Record<string, CanvaDatasetField>
+
+export type CanvaDatasetResponse = {
+  dataset?: CanvaDataset | null
+}
+
+export type CanvaGetDesignResponse = {
+  design: CanvaDesign
+}
+
+export type CanvaGetBrandTemplateResponse = {
+  brand_template: CanvaBrandTemplate
+}

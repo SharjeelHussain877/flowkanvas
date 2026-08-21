@@ -1,12 +1,14 @@
 "use client"
 
 import { LayoutTemplate } from "lucide-react"
+import Link from "next/link"
 
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { dashboardRoutes } from "@/lib/dashboard/routes"
 import type { CanvaTemplateListItem } from "@/schemas/canva/templates"
 import { cn } from "@/lib/utils"
 
@@ -24,19 +26,14 @@ export function TemplatePreviewCard({ item, className }: TemplatePreviewCardProp
 
   const kindLabel =
     item.kind === "brand_template" ? "Canva brand template" : "Canva design"
-  const actionHint =
-    item.kind === "brand_template"
-      ? "Open this brand template in Canva"
-      : "Open this design in Canva"
+  const href = dashboardRoutes.template(item.id, item.kind)
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <a
-          href={item.viewUrl}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={`${actionHint}: ${item.title}`}
+        <Link
+          href={href}
+          aria-label={`View payload keys for ${item.title}`}
           className={cn(
             "group block overflow-hidden rounded-xl transition-shadow hover:shadow-md",
             className
@@ -95,9 +92,9 @@ export function TemplatePreviewCard({ item, className }: TemplatePreviewCardProp
               ) : null}
             </div>
           </div>
-        </a>
+        </Link>
       </TooltipTrigger>
-      <TooltipContent side="top">{actionHint}</TooltipContent>
+      <TooltipContent side="top">View payload keys</TooltipContent>
     </Tooltip>
   )
 }

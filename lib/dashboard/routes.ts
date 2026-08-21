@@ -3,7 +3,10 @@ export const dashboardRoutes = {
   requests: "/dashboard/requests",
   templates: "/dashboard/templates",
   templateNew: "/dashboard/templates/new",
-  template: (slug: string) => `/dashboard/templates/${slug}`,
+  template: (id: string, kind?: "design" | "brand_template") =>
+    kind
+      ? `/dashboard/templates/${id}?kind=${kind}`
+      : `/dashboard/templates/${id}`,
   settings: {
     general: "/dashboard/settings",
     apiKeys: "/dashboard/settings/api-keys",

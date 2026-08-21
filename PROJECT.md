@@ -25,7 +25,9 @@
 | Accounts security migration | `supabase/migrations/20260805140000_accounts_security.sql` | SQL |
 | Canva templates API | `app/api/canva/templates/route.ts` | Wired |
 | New template page | `app/(protected)/dashboard/templates/new/page.tsx` | Static UI |
-| Template editor | `app/(protected)/dashboard/templates/[slug]/page.tsx` | Static UI |
+| Template editor | `app/(protected)/dashboard/templates/[id]/page.tsx` | Wired (Canva dataset payload) |
+| Template payload view | `app/(protected)/dashboard/templates/_components/template-payload-view.tsx` | Wired |
+| Canva template detail API | `app/api/canva/templates/[id]/route.ts` | Wired |
 | Template workspace | `app/(protected)/dashboard/templates/_components/template-workspace.tsx` | Static UI |
 | Settings | `app/(protected)/dashboard/settings/page.tsx` | Wired (profile + security + invites + Canva) |
 | Settings loading | `app/(protected)/dashboard/settings/_components/settings-page-skeleton.tsx` | Static UI |
@@ -44,7 +46,7 @@
 | Session services | `lib/services/sessions/*` | Wired |
 | Supabase schema migration | `supabase/migrations/20260726000000_flowkanvas_schema.sql` | SQL |
 | Invite services | `lib/services/invites.ts` | Wired |
-| Settings - API Keys | `app/(protected)/dashboard/settings/api-keys/page.tsx` | Wired |
+| Settings - API Keys | `app/(protected)/dashboard/settings/api-keys/page.tsx` | Wired (delete + PDF tester) |
 | API keys loading | `app/(protected)/dashboard/settings/api-keys/_components/api-keys-page-skeleton.tsx` | Static UI |
 | API keys services | `lib/services/api-keys/*` | Wired |
 | API keys routes | `app/api/api-keys/*` | Wired |
@@ -58,6 +60,18 @@
 | Password recovery cookie | `lib/auth/password-recovery-cookie.ts` | Config |
 
 ## Changelog
+
+### 2026-08-21 (api keys delete + pdf tester)
+- API keys page can permanently delete a key, plus a playground to fill Canva variables and download a PDF.
+- `POST /api/canva/templates/[id]/generate` (session) and `POST /api/v1/templates/[id]/generate` (API key) autofill then export PDF.
+
+### 2026-08-21 (canva template payload)
+- Template cards open `/dashboard/templates/[id]`. The page loads Canva data fields and shows the exact autofill payload keys.
+- If a regular design has no Canva dataset, we export a PDF and parse `{{variable}}` placeholders (e.g. `{{name}}`) into payload keys.
+- Empty fields include steps for naming data fields in Canva (brand templates work best).
+
+### 2026-08-21 (revoked canva token)
+- `/dashboard/templates`: if Canva returns a revoked/invalid access token, the `accounts` row is deleted so the user can reconnect.
 
 ### 2026-08-05 (dashboard back history)
 - Dashboard page back arrow uses browser history (`router.back`); falls back to the previous route map only when history is empty.

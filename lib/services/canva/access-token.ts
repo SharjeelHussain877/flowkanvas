@@ -7,6 +7,11 @@ import {
 import { CanvaServiceError } from "@/lib/services/canva/errors"
 import { requireAuthenticatedUserId } from "@/lib/services/canva/require-user"
 import { logSecurityEvent } from "@/lib/security/audit-log"
+import {
+  CANVA_TOKEN_REVOKED_CODE,
+  isCanvaTokenRevokedError,
+  removeRevokedCanvaConnection,
+} from "@/lib/services/canva/token-revoked"
 
 export async function disconnectCanvaConnection() {
   const userId = await requireAuthenticatedUserId()
@@ -61,6 +66,16 @@ export async function getValidCanvaAccessToken(userId: string): Promise<string> 
       userId,
       message: error instanceof Error ? error.message : "refresh failed",
     })
+
+    if (isCanvaTokenRevokedError(error)) {
+      await removeRevokedCanvaConnection(userId)
+      throw new CanvaServiceError(
+        "Canva access was revoked. Please reconnect.",
+        401,
+        CANVA_TOKEN_REVOKED_CODE
+      )
+    }
+
     throw error
   }
 }
