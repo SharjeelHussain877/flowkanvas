@@ -19,10 +19,14 @@ const pageDimension = z
   .min(MIN_PAGE_SIZE, `Minimum size is ${MIN_PAGE_SIZE}px`)
   .max(MAX_PAGE_SIZE, `Maximum size is ${MAX_PAGE_SIZE}px`)
 
+export const BLANK_STARTER_ID = "blank"
+
 export const createTemplateSchema = z.object({
   name: templateNameField,
   width: pageDimension,
   height: pageDimension,
+  /** Starter design id from lib/templates/starters.ts; blank when omitted. */
+  starter: z.string().min(1).max(64).optional(),
 })
 
 export const updateTemplateSchema = z
@@ -38,8 +42,11 @@ export type CreateTemplateInput = z.infer<typeof createTemplateSchema>
 export type UpdateTemplateInput = z.infer<typeof updateTemplateSchema>
 
 export type TemplateVariables = {
+  /** Printed in text, QR codes or barcodes. */
   text: string[]
   images: string[]
+  /** Only used by visibility conditions. */
+  conditions: string[]
 }
 
 export type TemplateRecord = {
@@ -74,6 +81,7 @@ export type PublicTemplate = {
   name: string
   width: number
   height: number
+  pages: number
   variables: TemplateVariables
   updated_at: string
 }

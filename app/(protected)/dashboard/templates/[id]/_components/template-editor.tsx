@@ -3,13 +3,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   ArrowLeft,
+  Barcode,
   Braces,
+  Circle,
   FlaskConical,
   ImagePlus,
   Minus,
   Plus,
+  QrCode,
   Redo2,
   Save,
+  Slash,
+  Sparkles,
   Square,
   Type,
   Undo2,
@@ -22,9 +27,11 @@ import {
   clampZoom,
   EditorCanvas,
 } from "@/app/(protected)/dashboard/templates/[id]/_components/editor-canvas"
+import { EditorPagesStrip } from "@/app/(protected)/dashboard/templates/[id]/_components/editor-pages-strip"
 import { EditorPropertiesPanel } from "@/app/(protected)/dashboard/templates/[id]/_components/editor-properties-panel"
 import { useEditorState } from "@/app/(protected)/dashboard/templates/[id]/_components/use-editor-state"
 import { settingsPrimaryButtonClassName } from "@/app/(protected)/dashboard/settings/_components/settings-button-classes"
+import { FontFaces } from "@/components/templates/font-faces"
 import { PdfPlayground } from "@/components/templates/pdf-playground"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -41,13 +48,13 @@ import { apiClient } from "@/lib/api/client"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
 import { queryKeys } from "@/lib/query/keys"
 import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
+import { findPage } from "@/lib/templates/design"
 import {
-  createImageElement,
-  createRectElement,
-  createTextElement,
-  createVariableTextElement,
+  createElementForTool,
+  duplicateElements,
+  type ToolKind,
 } from "@/lib/templates/element-defaults"
-import type { TemplateDesign } from "@/schemas/templates/design"
+import type { DesignElement, TemplateDesign } from "@/schemas/templates/design"
 import {
   templateNameField,
   type TemplateApiResponse,
@@ -65,6 +72,18 @@ type PanelTab = "design" | "api"
 
 const ZOOM_STEP = 1.25
 
+const TOOLS: Array<{ kind: ToolKind; label: string; icon: React.ReactNode }> = [
+  { kind: "text", label: "Text", icon: <Type className="size-5" aria-hidden /> },
+  { kind: "variable", label: "Variable text", icon: <Braces className="size-5" aria-hidden /> },
+  { kind: "image", label: "Image", icon: <ImagePlus className="size-5" aria-hidden /> },
+  { kind: "rect", label: "Rectangle", icon: <Square className="size-5" aria-hidden /> },
+  { kind: "ellipse", label: "Ellipse / circle", icon: <Circle className="size-5" aria-hidden /> },
+  { kind: "line", label: "Line", icon: <Slash className="size-5" aria-hidden /> },
+  { kind: "icon", label: "Icon", icon: <Sparkles className="size-5" aria-hidden /> },
+  { kind: "qrcode", label: "QR code", icon: <QrCode className="size-5" aria-hidden /> },
+  { kind: "barcode", label: "Barcode", icon: <Barcode className="size-5" aria-hidden /> },
+]
+
 function ToolButton({
   label,
   icon,
@@ -81,7 +100,7 @@ function ToolButton({
           type="button"
           variant="ghost"
           size="icon-lg"
-          aria-label={label}
+          aria-label={`Add ${label.toLowerCase()}`}
           className="text-brand-text-muted hover:text-brand-text-heading"
           onClick={onClick}
         >
@@ -103,7 +122,7 @@ export function TemplateEditor({ initialTemplate, apiBaseUrl }: TemplateEditorPr
   const [editingId, setEditingId] = useState<string | null>(null)
   const [panelTab, setPanelTab] = useState<PanelTab>("design")
   const [testOpen, setTestOpen] = useState(false)
-  const nameInputRef = useRef<HTMLInputElement>(null)
+  const clipboardRef = useRef<DesignElement[]>([])
 
   const designJson = useMemo(() => JSON.stringify(state.design), [state.design])
   const savedDesignJson = useMemo(
@@ -114,8 +133,10 @@ export function TemplateEditor({ initialTemplate, apiBaseUrl }: TemplateEditorPr
   const nameValid = templateNameField.safeParse(trimmedName).success
   const isDirty = designJson !== savedDesignJson || trimmedName !== savedTemplate.name
 
-  const selectedElement =
-    state.design.elements.find((element) => element.id === state.selectedId) ?? null
+  const activePage = findPage(state.design, state.activePageId) ?? state.design.pages[0]
+  const selectedElements = activePage.elements.filter((element) =>
+    state.selectedIds.includes(element.id)
+  )
 
   const saveMutation = useMutation({
     meta: backgroundMutationMeta,
@@ -195,68 +216,83 @@ export function TemplateEditor({ initialTemplate, apiBaseUrl }: TemplateEditorPr
         return
       }
 
-      if (mod && key === "d" && state.selectedId) {
+      if (mod && key === "a") {
         event.preventDefault()
-        dispatch({ type: "duplicate-element", id: state.selectedId })
+        dispatch({ type: "select", ids: activePage.elements.map((element) => element.id) })
         return
       }
 
-      if (!state.selectedId) {
+      if (mod && key === "v") {
+        if (clipboardRef.current.length > 0) {
+          event.preventDefault()
+          dispatch({ type: "add-elements", elements: duplicateElements(clipboardRef.current) })
+        }
+        return
+      }
+
+      if (state.selectedIds.length === 0) {
+        return
+      }
+
+      const ids = state.selectedIds
+
+      if (mod && key === "d") {
+        event.preventDefault()
+        dispatch({ type: "duplicate-elements", ids })
+        return
+      }
+
+      if (mod && key === "c") {
+        event.preventDefault()
+        clipboardRef.current = selectedElements
+        return
+      }
+
+      if (mod && key === "g") {
+        event.preventDefault()
+        dispatch({ type: event.shiftKey ? "ungroup-elements" : "group-elements", ids })
         return
       }
 
       if (event.key === "Delete" || event.key === "Backspace") {
         event.preventDefault()
-        dispatch({ type: "remove-element", id: state.selectedId })
+        dispatch({ type: "remove-elements", ids })
         return
       }
 
       if (event.key === "Escape") {
-        dispatch({ type: "select", id: null })
+        dispatch({ type: "select", ids: [] })
         return
       }
 
       const step = event.shiftKey ? 10 : 1
-      const element = state.design.elements.find((item) => item.id === state.selectedId)
-
-      if (!element) {
-        return
+      const nudges: Record<string, { dx: number; dy: number }> = {
+        ArrowLeft: { dx: -step, dy: 0 },
+        ArrowRight: { dx: step, dy: 0 },
+        ArrowUp: { dx: 0, dy: -step },
+        ArrowDown: { dx: 0, dy: step },
       }
 
-      const nudges: Record<string, { x?: number; y?: number }> = {
-        ArrowLeft: { x: element.x - step },
-        ArrowRight: { x: element.x + step },
-        ArrowUp: { y: element.y - step },
-        ArrowDown: { y: element.y + step },
-      }
+      const nudge = nudges[event.key]
 
-      const patch = nudges[event.key]
-
-      if (patch) {
+      if (nudge) {
         event.preventDefault()
-        dispatch({ type: "update-element", id: element.id, patch })
+        dispatch({ type: "translate-elements", ids, ...nudge })
       }
     }
 
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [dispatch, save, state.design.elements, state.selectedId])
+  }, [activePage.elements, dispatch, save, selectedElements, state.selectedIds])
 
   const handleEffectiveZoom = useCallback((value: number) => {
     setEffectiveZoom((current) => (Math.abs(current - value) < 0.0001 ? current : value))
   }, [])
 
-  function addElement(kind: "text" | "variable" | "image" | "rect") {
-    const element =
-      kind === "text"
-        ? createTextElement(state.design)
-        : kind === "variable"
-          ? createVariableTextElement(state.design)
-          : kind === "image"
-            ? createImageElement(state.design)
-            : createRectElement(state.design)
+  function addElement(kind: ToolKind) {
+    const element = createElementForTool(state.design, kind)
 
-    dispatch({ type: "add-element", element })
+    dispatch({ type: "add-elements", elements: [element] })
     setPanelTab("design")
 
     if (kind === "text" || kind === "variable") {
@@ -272,8 +308,17 @@ export function TemplateEditor({ initialTemplate, apiBaseUrl }: TemplateEditorPr
         ? "Unsaved changes"
         : "Saved"
 
+  const panelTitle =
+    selectedElements.length === 0
+      ? "Page"
+      : selectedElements.length === 1
+        ? "Element"
+        : "Selection"
+
   return (
     <div className="flex h-[calc(100svh-3rem)] flex-col bg-brand-mist/60">
+      <FontFaces />
+
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border/70 bg-card px-3">
         <Button asChild variant="ghost" size="icon" aria-label="Back to templates">
           <Link href={dashboardRoutes.templates}>
@@ -282,7 +327,6 @@ export function TemplateEditor({ initialTemplate, apiBaseUrl }: TemplateEditorPr
         </Button>
 
         <Input
-          ref={nameInputRef}
           value={name}
           aria-label="Template name"
           aria-invalid={!nameValid}
@@ -407,33 +451,48 @@ export function TemplateEditor({ initialTemplate, apiBaseUrl }: TemplateEditorPr
       ) : null}
 
       <div className="flex min-h-0 flex-1">
-        <aside className="flex w-14 shrink-0 flex-col items-center gap-1 border-e border-border/70 bg-card py-2">
-          <ToolButton label="Add text" icon={<Type className="size-5" aria-hidden />} onClick={() => addElement("text")} />
-          <ToolButton label="Add variable text" icon={<Braces className="size-5" aria-hidden />} onClick={() => addElement("variable")} />
-          <ToolButton label="Add image" icon={<ImagePlus className="size-5" aria-hidden />} onClick={() => addElement("image")} />
-          <ToolButton label="Add rectangle" icon={<Square className="size-5" aria-hidden />} onClick={() => addElement("rect")} />
+        <aside className="flex w-14 shrink-0 flex-col items-center gap-1 overflow-y-auto border-e border-border/70 bg-card py-2">
+          {TOOLS.map((tool) => (
+            <ToolButton
+              key={tool.kind}
+              label={tool.label}
+              icon={tool.icon}
+              onClick={() => addElement(tool.kind)}
+            />
+          ))}
         </aside>
 
-        <EditorCanvas
-          design={state.design}
-          selectedId={state.selectedId}
-          zoom={zoom}
-          onEffectiveZoom={handleEffectiveZoom}
-          editingId={editingId}
-          onEditingChange={setEditingId}
-          onSelect={(id) => dispatch({ type: "select", id })}
-          onUpdateElement={(id, patch, transient) =>
-            dispatch({ type: "update-element", id, patch, transient })
-          }
-          onBeginTransaction={() => dispatch({ type: "begin-transaction" })}
-          onEndTransaction={() => dispatch({ type: "end-transaction" })}
-        />
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <EditorCanvas
+            design={state.design}
+            page={activePage}
+            selectedIds={state.selectedIds}
+            zoom={zoom}
+            onEffectiveZoom={handleEffectiveZoom}
+            editingId={editingId}
+            onEditingChange={setEditingId}
+            onSelect={(ids) => dispatch({ type: "select", ids })}
+            onUpdateElement={(id, patch, transient) =>
+              dispatch({ type: "update-element", id, patch, transient })
+            }
+            onPatchElements={(patches, transient) =>
+              dispatch({ type: "patch-elements", patches, transient })
+            }
+            onBeginTransaction={() => dispatch({ type: "begin-transaction" })}
+            onEndTransaction={() => dispatch({ type: "end-transaction" })}
+          />
+          <EditorPagesStrip
+            design={state.design}
+            activePageId={activePage.id}
+            dispatch={dispatch}
+          />
+        </div>
 
         <aside className="hidden w-80 shrink-0 flex-col border-s border-border/70 bg-card lg:flex">
           <div className="flex shrink-0 border-b border-border/70" role="tablist">
             {(
               [
-                { id: "design", label: selectedElement ? "Element" : "Page" },
+                { id: "design", label: panelTitle },
                 { id: "api", label: "API" },
               ] as const
             ).map((tab) => (
@@ -458,7 +517,8 @@ export function TemplateEditor({ initialTemplate, apiBaseUrl }: TemplateEditorPr
             {panelTab === "design" ? (
               <EditorPropertiesPanel
                 design={state.design}
-                element={selectedElement}
+                page={activePage}
+                elements={selectedElements}
                 templateId={initialTemplate.id}
                 dispatch={dispatch}
               />

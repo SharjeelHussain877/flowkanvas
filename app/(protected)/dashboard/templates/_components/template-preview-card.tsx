@@ -1,6 +1,6 @@
 "use client"
 
-import { Braces, Trash2 } from "lucide-react"
+import { Braces, Layers, Trash2 } from "lucide-react"
 import Link from "next/link"
 
 import { DesignPreview } from "@/components/templates/design-renderer"
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
 import { findPresetBySize } from "@/lib/templates/presets"
-import { extractTemplateVariables } from "@/lib/templates/variables"
+import { countVariables, extractTemplateVariables } from "@/lib/templates/variables"
 import type { TemplateRecord } from "@/schemas/templates/template"
 import { cn } from "@/lib/utils"
 
@@ -31,7 +31,8 @@ export function TemplatePreviewCard({
   className,
 }: TemplatePreviewCardProps) {
   const variables = extractTemplateVariables(template.design)
-  const variableCount = variables.text.length + variables.images.length
+  const variableCount = countVariables(variables)
+  const pageCount = template.design.pages.length
   const preset = findPresetBySize(template.width, template.height)
   const sizeLabel = preset
     ? preset.label
@@ -63,11 +64,21 @@ export function TemplatePreviewCard({
             {template.name}
           </Link>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {sizeLabel} · {formatUpdatedAt(template.updated_at)}
+            {sizeLabel}
+            {pageCount > 1 ? ` · ${pageCount} pages` : ""} · {formatUpdatedAt(template.updated_at)}
           </p>
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
+          {pageCount > 1 ? (
+            <span
+              className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
+              title={`${pageCount} pages`}
+            >
+              <Layers className="size-3" aria-hidden />
+              {pageCount}
+            </span>
+          ) : null}
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
@@ -78,7 +89,7 @@ export function TemplatePreviewCard({
             <TooltipContent side="top">
               {variableCount === 0
                 ? "No variables yet"
-                : [...variables.text, ...variables.images].join(", ")}
+                : [...variables.text, ...variables.images, ...variables.conditions].join(", ")}
             </TooltipContent>
           </Tooltip>
           <Button

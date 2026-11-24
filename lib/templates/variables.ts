@@ -1,3 +1,4 @@
+import { getAllElements } from "@/lib/templates/design"
 import {
   TEMPLATE_VARIABLE_PATTERN,
   type TemplateDesign,
@@ -16,14 +17,20 @@ export function extractTextVariables(text: string): string[] {
   return [...names]
 }
 
-/** Variables used by a design, in order of first appearance. */
+/**
+ * Variables used by a design across all pages, in order of first appearance.
+ * `conditions` lists names that only drive visibility (not printed anywhere).
+ */
 export function extractTemplateVariables(design: TemplateDesign): TemplateVariables {
   const text = new Set<string>()
   const images = new Set<string>()
+  const conditionNames = new Set<string>()
 
-  for (const element of design.elements) {
-    if (element.type === "text") {
-      for (const name of extractTextVariables(element.text)) {
+  for (const element of getAllElements(design)) {
+    if (element.type === "text" || element.type === "qrcode" || element.type === "barcode") {
+      const source = element.type === "text" ? element.text : element.value
+
+      for (const name of extractTextVariables(source)) {
         text.add(name)
       }
     }
@@ -31,9 +38,15 @@ export function extractTemplateVariables(design: TemplateDesign): TemplateVariab
     if (element.type === "image" && element.variable) {
       images.add(element.variable)
     }
+
+    if (element.condition) {
+      conditionNames.add(element.condition.variable)
+    }
   }
 
-  return { text: [...text], images: [...images] }
+  const conditions = [...conditionNames].filter((name) => !text.has(name) && !images.has(name))
+
+  return { text: [...text], images: [...images], conditions }
 }
 
 export function interpolateText(
@@ -83,5 +96,13 @@ export function buildExamplePayload(variables: TemplateVariables) {
     payload[name] = "https://example.com/image.png"
   }
 
+  for (const name of variables.conditions) {
+    payload[name] = "yes"
+  }
+
   return payload
+}
+
+export function countVariables(variables: TemplateVariables): number {
+  return variables.text.length + variables.images.length + variables.conditions.length
 }

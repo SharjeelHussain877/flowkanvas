@@ -10,6 +10,7 @@ import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
 import {
   buildExamplePayload,
+  countVariables,
   extractTemplateVariables,
 } from "@/lib/templates/variables"
 import type { TemplateDesign } from "@/schemas/templates/design"
@@ -63,9 +64,26 @@ function Snippet({ code }: { code: string }) {
   )
 }
 
+function VariableChips({ names, suffix, className }: { names: string[]; suffix?: string; className: string }) {
+  if (names.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {names.map((name) => (
+        <code key={name} className={`rounded-md px-1.5 py-0.5 text-xs text-brand-text-heading ${className}`}>
+          {name}
+          {suffix ? ` · ${suffix}` : ""}
+        </code>
+      ))}
+    </div>
+  )
+}
+
 export function EditorApiPanel({ templateId, design, apiBaseUrl }: EditorApiPanelProps) {
   const variables = extractTemplateVariables(design)
-  const hasVariables = variables.text.length + variables.images.length > 0
+  const hasVariables = countVariables(variables) > 0
   const endpoint = `${apiBaseUrl}/api/v1/templates/${templateId}/generate`
   const examplePayload = buildExamplePayload(variables)
   const payloadJson = JSON.stringify({ payload: examplePayload }, null, 2)
@@ -78,6 +96,7 @@ export function EditorApiPanel({ templateId, design, apiBaseUrl }: EditorApiPane
 
   const formFields = [
     ...variables.text.map((name) => `  -F "${name}=${examplePayload[name]}" \\`),
+    ...variables.conditions.map((name) => `  -F "${name}=yes" \\`),
     ...variables.images.map((name) => `  -F "${name}=@/path/to/${name}.jpg" \\`),
   ].join("\n")
 
@@ -90,37 +109,27 @@ ${formFields ? `${formFields}\n` : ""}  --output result.pdf`
       <PanelSection title="Variables">
         {hasVariables ? (
           <div className="space-y-2">
-            {variables.text.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {variables.text.map((name) => (
-                  <code
-                    key={name}
-                    className="rounded-md bg-brand-teal/10 px-1.5 py-0.5 text-xs text-brand-text-heading"
-                  >
-                    {name}
-                  </code>
-                ))}
-              </div>
-            ) : null}
-            {variables.images.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {variables.images.map((name) => (
-                  <code
-                    key={name}
-                    className="rounded-md bg-brand-mist px-1.5 py-0.5 text-xs text-brand-text-heading"
-                  >
-                    {name} · image
-                  </code>
-                ))}
-              </div>
+            <VariableChips names={variables.text} className="bg-brand-teal/10" />
+            <VariableChips names={variables.images} suffix="image" className="bg-brand-mist" />
+            <VariableChips names={variables.conditions} suffix="shows/hides" className="bg-amber-100 dark:bg-amber-900/40" />
+            {variables.conditions.length > 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Condition variables are not printed; send any value (or leave them out) to show or
+                hide the elements that use them.
+              </p>
             ) : null}
           </div>
         ) : (
           <p className="text-xs text-muted-foreground">
-            No variables yet. Type <code>{"{{name}}"}</code> inside a text box, or bind an
-            image to a variable, and they will appear here.
+            No variables yet. Type <code>{"{{name}}"}</code> inside a text box, QR code or barcode,
+            or bind an image to a variable, and they will appear here.
           </p>
         )}
+        {design.pages.length > 1 ? (
+          <p className="text-xs text-muted-foreground">
+            The PDF has {design.pages.length} pages; variables are shared across all of them.
+          </p>
+        ) : null}
       </PanelSection>
 
       <PanelSection

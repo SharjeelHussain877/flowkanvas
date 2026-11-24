@@ -5,11 +5,21 @@ import { useState, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
 const HEX_PATTERN = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i
 
 export const compactInputClassName = "h-9 px-2.5 py-0 text-sm"
+
+export const selectTriggerClassName =
+  "h-9 w-full min-w-0 rounded-sm border border-brand-input-border bg-brand-input px-2.5 text-sm text-brand-text-heading"
 
 export type TransactionHandlers = {
   onFocus: () => void
@@ -225,5 +235,69 @@ export function ToggleGroup<T extends string>({
         ))}
       </div>
     </div>
+  )
+}
+
+type SelectFieldProps<T extends string> = {
+  id: string
+  label: string
+  value: T
+  options: Array<{ value: T; label: ReactNode; hint?: string }>
+  onChange: (value: T) => void
+}
+
+export function SelectField<T extends string>({
+  id,
+  label,
+  value,
+  options,
+  onChange,
+}: SelectFieldProps<T>) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id} className="text-xs text-brand-text-muted">
+        {label}
+      </Label>
+      <Select value={value} onValueChange={(next) => onChange(next as T)}>
+        <SelectTrigger id={id} className={selectTriggerClassName}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent position="popper" align="start" className="max-h-72">
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+              {option.hint ? (
+                <span className="ms-2 text-xs text-muted-foreground">{option.hint}</span>
+              ) : null}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+export function SwitchField({
+  id,
+  label,
+  checked,
+  onChange,
+}: {
+  id: string
+  label: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <label htmlFor={id} className="flex items-center justify-between gap-3 text-xs text-brand-text-muted">
+      <span>{label}</span>
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        className="size-4 accent-brand-teal"
+        onChange={(event) => onChange(event.target.checked)}
+      />
+    </label>
   )
 }

@@ -4,6 +4,7 @@ import { templateDesignSchema } from "@/schemas/templates/design"
 import type { PublicTemplate, TemplateRecord } from "@/schemas/templates/template"
 import type { TemplateRow } from "@/types/supabase"
 
+/** Parses the stored design (upgrading older formats) and falls back to a blank page if it is unreadable. */
 export function toTemplateRecord(row: TemplateRow): TemplateRecord {
   const parsed = templateDesignSchema.safeParse(row.design)
   const width = Number(row.width)
@@ -26,6 +27,7 @@ export function toPublicTemplate(record: TemplateRecord): PublicTemplate {
     name: record.name,
     width: record.width,
     height: record.height,
+    pages: record.design.pages.length,
     variables: extractTemplateVariables(record.design),
     updated_at: record.updated_at,
   }

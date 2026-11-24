@@ -1,4 +1,5 @@
 import { TemplateServiceError } from "@/lib/services/templates/errors"
+import { getAllElements } from "@/lib/templates/design"
 import type { TemplateDesign } from "@/schemas/templates/design"
 import {
   MAX_IMAGE_BYTES,
@@ -226,7 +227,7 @@ export async function resolveDesignImages(
   const staticCache = new Map<string, Promise<ResolvedImage>>()
   const variableCache = new Map<string, Promise<ResolvedImage>>()
 
-  const tasks = design.elements.flatMap((element) => {
+  const tasks = getAllElements(design).flatMap((element) => {
     if (element.type !== "image") {
       return []
     }

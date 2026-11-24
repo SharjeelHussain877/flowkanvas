@@ -21,4 +21,8 @@ export const queryKeys = {
     all: ["requests"] as const,
     list: () => [...queryKeys.requests.all, "list"] as const,
   },
+  fonts: {
+    all: ["fonts"] as const,
+    list: () => [...queryKeys.fonts.all, "list"] as const,
+  },
 } as const

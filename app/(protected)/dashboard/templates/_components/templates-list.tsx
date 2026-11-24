@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useState } from "react"
 
 import { TemplatePreviewCard } from "@/app/(protected)/dashboard/templates/_components/template-preview-card"
+import { FontFaces } from "@/components/templates/font-faces"
 import { useStaggeredReveal } from "@/app/(protected)/dashboard/templates/_components/use-staggered-reveal"
 import {
   AlertDialog,
@@ -92,8 +93,9 @@ export function TemplatesList({ initialData, loadError = null }: TemplatesListPr
             No templates yet
           </CardTitle>
           <CardDescription>
-            Create a template, design it on the canvas with text, images and shapes,
-            and use <code>{"{{variables}}"}</code> for the parts that change per PDF.
+            Start from a certificate, ticket, ID card or other starter, or design your own
+            with text, images, shapes, icons, QR codes and barcodes. Use{" "}
+            <code>{"{{variables}}"}</code> for the parts that change per PDF.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -110,6 +112,7 @@ export function TemplatesList({ initialData, loadError = null }: TemplatesListPr
 
   return (
     <>
+      <FontFaces />
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         {templates.map((template, index) =>
           index < visibleCount ? (

@@ -23,7 +23,7 @@ export default async function TemplatesPage() {
   return (
     <DashboardPage
       title="Templates"
-      description="Design a page of any size, add variables, then generate PDFs through the API."
+      description="Design multi-page PDFs with text, images, shapes, icons, QR codes and barcodes. Add variables, then generate them through the API."
       action={
         <Button asChild className={cn(authPrimaryButtonClassName, "px-4")}>
           <Link href={dashboardRoutes.templateNew}>

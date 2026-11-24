@@ -142,6 +142,44 @@ export type Database = {
           },
         ]
       }
+      template_fonts: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          weight: number
+          style: string
+          storage_path: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          weight: number
+          style: string
+          storage_path: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          weight?: number
+          style?: string
+          storage_path?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_fonts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: Record<string, never>
     Functions: {
@@ -181,3 +219,4 @@ export type Database = {
 export type ApiKeyRow = Database["public"]["Tables"]["api_keys"]["Row"]
 export type TemplateRow = Database["public"]["Tables"]["templates"]["Row"]
 export type RenderRequestRow = Database["public"]["Tables"]["render_requests"]["Row"]
+export type TemplateFontRow = Database["public"]["Tables"]["template_fonts"]["Row"]

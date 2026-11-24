@@ -25,7 +25,7 @@ import {
 import { apiClient } from "@/lib/api/client"
 import { queryKeys } from "@/lib/query/keys"
 import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
-import { extractTemplateVariables } from "@/lib/templates/variables"
+import { countVariables, extractTemplateVariables } from "@/lib/templates/variables"
 import type {
   TemplateApiResponse,
   TemplateRecord,
@@ -113,10 +113,12 @@ export function PdfPlayground({
   const template = initialTemplate ?? templateQuery.data ?? null
   const variables = useMemo(
     () =>
-      template ? extractTemplateVariables(template.design) : { text: [], images: [] },
+      template
+        ? extractTemplateVariables(template.design)
+        : { text: [], images: [], conditions: [] },
     [template]
   )
-  const hasVariables = variables.text.length + variables.images.length > 0
+  const hasVariables = countVariables(variables) > 0
 
   useEffect(() => {
     return () => {
@@ -189,9 +191,9 @@ export function PdfPlayground({
 
       {template && !hasVariables ? (
         <p className="text-sm text-muted-foreground">
-          This template has no variables yet. Add <code>{"{{name}}"}</code> to a text
-          box or bind an image to a variable in the editor, then test it here. You can
-          still generate the static PDF.
+          This template has no variables yet. Add <code>{"{{name}}"}</code> to a text box,
+          QR code or barcode, or bind an image to a variable in the editor, then test it
+          here. You can still generate the static PDF.
         </p>
       ) : null}
 
@@ -210,6 +212,39 @@ export function PdfPlayground({
               />
             </Field>
           ))}
+        </div>
+      ) : null}
+
+      {variables.conditions.length > 0 ? (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Conditions - tick to send a value and show the elements that depend on it.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {variables.conditions.map((name) => (
+              <label key={name} className="flex items-center gap-2 text-sm text-brand-text-heading">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-brand-teal"
+                  checked={Boolean(values[name])}
+                  onChange={(event) =>
+                    setValues((current) => {
+                      const next = { ...current }
+
+                      if (event.target.checked) {
+                        next[name] = "yes"
+                      } else {
+                        delete next[name]
+                      }
+
+                      return next
+                    })
+                  }
+                />
+                <code className="text-xs">{name}</code>
+              </label>
+            ))}
+          </div>
         </div>
       ) : null}
 
@@ -326,8 +361,8 @@ export function PdfPlayground({
       <CardHeader>
         <CardTitle>API tester</CardTitle>
         <CardDescription>
-          Pick a template, fill its variables (text and images), then generate a PDF
-          exactly like the API would.
+          Pick a template, fill its variables (text, images and condition flags), then
+          generate a PDF exactly like the API would.
         </CardDescription>
       </CardHeader>
       <CardContent>{content}</CardContent>

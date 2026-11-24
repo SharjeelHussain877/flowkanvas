@@ -1,6 +1,6 @@
 "use client"
 
-import { ImageIcon } from "lucide-react"
+import { EyeOff, ImageIcon } from "lucide-react"
 import {
   useEffect,
   useRef,
@@ -9,10 +9,15 @@ import {
   type ReactNode,
 } from "react"
 
+import { BarcodeGlyph, QrCodeGlyph } from "@/components/templates/code-glyphs"
+import { IconGlyph } from "@/components/templates/icon-glyph"
+import { describeCondition } from "@/lib/templates/conditions"
 import { getCssFontFamily } from "@/lib/templates/fonts"
 import { tokenizeText } from "@/lib/templates/variables"
 import type {
   DesignElement,
+  DesignPage as DesignPageData,
+  LineElement,
   TemplateDesign,
   TextElement,
 } from "@/schemas/templates/design"
@@ -46,6 +51,21 @@ export function textStyle(element: TextElement): CSSProperties {
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
     margin: 0,
+  }
+}
+
+function lineEndpoints(element: LineElement) {
+  const { width: w, height: h } = element
+
+  switch (element.orientation) {
+    case "vertical":
+      return { x1: w / 2, y1: 0, x2: w / 2, y2: h }
+    case "diagonal-down":
+      return { x1: 0, y1: 0, x2: w, y2: h }
+    case "diagonal-up":
+      return { x1: 0, y1: h, x2: w, y2: 0 }
+    default:
+      return { x1: 0, y1: h / 2, x2: w, y2: h / 2 }
   }
 }
 
@@ -146,24 +166,102 @@ export function DesignElementView({
         />
       )
 
+    case "ellipse":
+      return (
+        <div
+          style={{
+            ...box,
+            boxSizing: "border-box",
+            backgroundColor: element.fill || "transparent",
+            border:
+              element.stroke && element.strokeWidth > 0
+                ? `${element.strokeWidth}px solid ${element.stroke}`
+                : undefined,
+            borderRadius: "50%",
+          }}
+        />
+      )
+
+    case "line": {
+      const points = lineEndpoints(element)
+
+      return (
+        <svg
+          style={box}
+          viewBox={`0 0 ${element.width} ${element.height}`}
+          width={fill ? "100%" : element.width}
+          height={fill ? "100%" : element.height}
+          preserveAspectRatio="none"
+          aria-hidden
+        >
+          <line
+            {...points}
+            stroke={element.stroke}
+            strokeWidth={element.strokeWidth}
+            strokeDasharray={element.dash > 0 ? `${element.dash} ${element.dash}` : undefined}
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+      )
+    }
+
+    case "icon":
+      return (
+        <div style={box}>
+          <IconGlyph name={element.name} color={element.color} strokeWidth={element.strokeWidth} />
+        </div>
+      )
+
+    case "qrcode":
+      return <QrCodeGlyph element={element} value={element.value} style={box} />
+
+    case "barcode":
+      return <BarcodeGlyph element={element} value={element.value} style={box} />
+
     default:
       return null
   }
 }
 
+/** Small marker shown on conditional elements in editor previews. */
+export function ConditionBadge({ element, scale }: { element: DesignElement; scale: number }) {
+  if (!element.condition) {
+    return null
+  }
+
+  const size = 16 / scale
+
+  return (
+    <div
+      title={describeCondition(element.condition)}
+      className="pointer-events-none absolute flex items-center justify-center rounded-full bg-amber-500 text-white shadow-sm"
+      style={{
+        right: -size / 2,
+        top: -size / 2,
+        width: size,
+        height: size,
+      }}
+    >
+      <EyeOff style={{ width: size * 0.62, height: size * 0.62 }} aria-hidden />
+    </div>
+  )
+}
+
 type DesignPageProps = {
   design: TemplateDesign
+  page: DesignPageData
   scale: number
   highlightVariables?: boolean
   renderElement?: (element: DesignElement) => ReactNode
   children?: ReactNode
   className?: string
-  onBackgroundPointerDown?: () => void
+  onBackgroundPointerDown?: (event: React.PointerEvent<HTMLDivElement>) => void
 }
 
-/** The page at a given zoom. Children render in unscaled design units. */
+/** One page at a given zoom. Children render in unscaled design units. */
 export function DesignPage({
   design,
+  page,
   scale,
   highlightVariables = false,
   renderElement,
@@ -180,7 +278,7 @@ export function DesignPage({
         data-design-page
         onPointerDown={(event) => {
           if (event.target === event.currentTarget) {
-            onBackgroundPointerDown?.()
+            onBackgroundPointerDown?.(event)
           }
         }}
         style={{
@@ -191,10 +289,10 @@ export function DesignPage({
           height: design.height,
           transform: `scale(${scale})`,
           transformOrigin: "top left",
-          backgroundColor: design.background,
+          backgroundColor: page.background,
         }}
       >
-        {design.elements.map((element) =>
+        {page.elements.map((element) =>
           renderElement ? (
             renderElement(element)
           ) : (
@@ -213,13 +311,22 @@ export function DesignPage({
 
 type DesignPreviewProps = {
   design: TemplateDesign
+  /** Which page to show; defaults to the first. */
+  pageIndex?: number
   className?: string
+  highlightVariables?: boolean
 }
 
-/** Fits the whole page inside its container (used by template cards). */
-export function DesignPreview({ design, className }: DesignPreviewProps) {
+/** Fits one page inside its container (template cards, page thumbnails, starters). */
+export function DesignPreview({
+  design,
+  pageIndex = 0,
+  className,
+  highlightVariables = true,
+}: DesignPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(0)
+  const page = design.pages[pageIndex] ?? design.pages[0]
 
   useEffect(() => {
     const node = containerRef.current
@@ -246,8 +353,14 @@ export function DesignPreview({ design, className }: DesignPreviewProps) {
       ref={containerRef}
       className={cn("flex items-center justify-center overflow-hidden", className)}
     >
-      {scale > 0 ? (
-        <DesignPage design={design} scale={scale} highlightVariables className="shadow-sm" />
+      {scale > 0 && page ? (
+        <DesignPage
+          design={design}
+          page={page}
+          scale={scale}
+          highlightVariables={highlightVariables}
+          className="shadow-sm"
+        />
       ) : null}
     </div>
   )

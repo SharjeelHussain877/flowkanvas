@@ -5,7 +5,7 @@ export default function NewTemplatePage() {
   return (
     <DashboardPage
       title="New Template"
-      description="Pick a page size - any size works - then design it on the canvas."
+      description="Start from a ready-made design or a blank page of any size, then make it yours in the editor."
     >
       <NewTemplateForm />
     </DashboardPage>

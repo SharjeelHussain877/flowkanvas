@@ -14,13 +14,19 @@ export default function TemplateEditorLoading() {
       <div className="flex min-h-0 flex-1">
         <div className="w-14 border-e border-border/70 bg-card p-2">
           <div className="space-y-2">
-            <Skeleton className="size-10 rounded-md" />
-            <Skeleton className="size-10 rounded-md" />
-            <Skeleton className="size-10 rounded-md" />
+            {Array.from({ length: 9 }).map((_, index) => (
+              <Skeleton key={index} className="size-10 rounded-md" />
+            ))}
           </div>
         </div>
-        <div className="flex flex-1 items-center justify-center bg-brand-mist/60 p-8">
-          <Skeleton className="aspect-[1/1.41] h-full max-h-[720px] rounded-sm" />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex flex-1 items-center justify-center bg-brand-mist/60 p-8">
+            <Skeleton className="aspect-[1/1.41] h-full max-h-[640px] rounded-sm" />
+          </div>
+          <div className="flex h-24 items-center gap-2 border-t border-border/70 bg-card px-3">
+            <Skeleton className="h-16 w-12 rounded-sm" />
+            <Skeleton className="h-16 w-12 rounded-sm" />
+          </div>
         </div>
         <div className="hidden w-80 border-s border-border/70 bg-card p-4 lg:block">
           <div className="space-y-3">

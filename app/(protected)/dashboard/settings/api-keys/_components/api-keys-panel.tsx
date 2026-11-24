@@ -380,8 +380,9 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
           <CardHeader>
             <CardTitle>Usage snippet</CardTitle>
             <CardDescription>
-              Find TEMPLATE_ID in the editor&apos;s API tab. Images can be files in
-              form-data, or URLs / data URIs in JSON.
+              Find TEMPLATE_ID in the editor&apos;s API tab. Text variables fill text, QR
+              codes and barcodes; images can be files in form-data, or URLs / data URIs in
+              JSON; condition variables show or hide elements.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -393,10 +394,11 @@ curl -X POST /api/v1/templates/TEMPLATE_ID/generate \\
   -d '{"payload":{"name":"Ali","course":"Design 101"}}' \\
   --output certificate.pdf
 
-# multipart/form-data - text + image variables
+# multipart/form-data - text + image variables (+ a condition flag)
 curl -X POST /api/v1/templates/TEMPLATE_ID/generate \\
   -H "Authorization: Bearer ${exampleMaskedKey}" \\
   -F "name=Ali" \\
+  -F "vip=yes" \\
   -F "photo=@/path/to/photo.jpg" \\
   --output certificate.pdf`}
             </pre>

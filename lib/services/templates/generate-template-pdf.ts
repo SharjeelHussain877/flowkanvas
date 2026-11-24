@@ -1,7 +1,12 @@
 import { renderTemplatePdf } from "@/lib/pdf/render-template-pdf"
 import { logSecurityEvent } from "@/lib/security/audit-log"
+import { listFontsForUser } from "@/lib/services/fonts/list-fonts-for-user"
 import { logRenderRequest } from "@/lib/services/requests/log-render-request"
+import { getAllElements } from "@/lib/templates/design"
+import { isCustomFontFamily } from "@/lib/templates/fonts"
+import type { FontRecord } from "@/schemas/fonts/font"
 import type { RenderRequestSource } from "@/schemas/requests/render-request"
+import type { TemplateDesign } from "@/schemas/templates/design"
 import type { GenerateRequestPayload } from "@/schemas/templates/generate"
 import type { TemplateRecord } from "@/schemas/templates/template"
 
@@ -17,6 +22,20 @@ export function toPdfFilename(name: string): string {
   return `${base.replace(/\s+/g, "-").slice(0, 60)}.pdf`
 }
 
+function usesCustomFonts(design: TemplateDesign): boolean {
+  return getAllElements(design).some(
+    (element) => element.type === "text" && isCustomFontFamily(element.fontFamily)
+  )
+}
+
+async function loadFonts(design: TemplateDesign, userId: string): Promise<FontRecord[]> {
+  if (!usesCustomFonts(design)) {
+    return []
+  }
+
+  return listFontsForUser(userId)
+}
+
 export async function generateTemplatePdf(input: {
   template: TemplateRecord
   userId: string
@@ -26,10 +45,12 @@ export async function generateTemplatePdf(input: {
   const startedAt = Date.now()
 
   try {
+    const fonts = await loadFonts(input.template.design, input.userId)
     const result = await renderTemplatePdf(
       input.template.design,
       input.payload,
-      input.template.name
+      input.template.name,
+      fonts
     )
 
     await logRenderRequest({
