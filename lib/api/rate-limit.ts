@@ -1,5 +1,14 @@
-import { CanvaServiceError } from "@/lib/services/canva/errors"
 import { logSecurityEvent } from "@/lib/security/audit-log"
+
+export class RateLimitError extends Error {
+  status = 429
+  code = "RATE_LIMITED"
+
+  constructor(message = "Too many requests. Please wait a moment and try again.") {
+    super(message)
+    this.name = "RateLimitError"
+  }
+}
 
 type RateLimitBucket = {
   count: number
@@ -31,16 +40,12 @@ export function assertRateLimit({
 
   if (existing.count >= limit) {
     logSecurityEvent({
-      event: "canva.rate_limit.exceeded",
+      event: "api.rate_limit.exceeded",
       userId: userId ?? null,
       code: "RATE_LIMITED",
       message: `Limit ${limit} per ${windowMs}ms`,
     })
-    throw new CanvaServiceError(
-      "Too many Canva requests. Please wait a moment and try again.",
-      429,
-      "RATE_LIMITED"
-    )
+    throw new RateLimitError()
   }
 
   existing.count += 1

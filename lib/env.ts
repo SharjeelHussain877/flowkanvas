@@ -1,5 +1,4 @@
 import { authConfirmPath, defaultAuthenticatedPath } from "@/lib/auth/routes"
-import { CANVA_TEMPLATE_SCOPES_STRING } from "@/lib/canva/scopes"
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -59,38 +58,4 @@ export function buildSitePath(path: string): string {
 
 export function getPasswordRecoveryConfirmUrl(): string {
   return getAuthConfirmUrl("/change-password")
-}
-
-export function getCanvaClientId(): string {
-  return requireEnv("CANVA_CLIENT_ID")
-}
-
-export function getCanvaClientSecret(): string {
-  return requireEnv("CANVA_CLIENT_SECRET")
-}
-
-export function getCanvaRedirectUri(): string {
-  return `${getSiteUrl()}/api/auth/canva/callback`
-}
-
-export function getCanvaScopes(): string {
-  const configured = process.env.CANVA_SCOPES?.trim()
-
-  if (!configured) {
-    throw new Error(
-      "CANVA_SCOPES is not set. Add scopes to .env that match your Canva integration (Developer Portal → Authentication → Scopes)."
-    )
-  }
-
-  return configured
-}
-
-/** 32-byte key as 64 hex chars - encrypts Canva access/refresh tokens at rest. */
-export function getCanvaTokenEncryptionKey(): string {
-  return requireEnv("CANVA_TOKEN_ENCRYPTION_KEY")
-}
-
-/** Documented default for .env.example - not used unless copied into CANVA_SCOPES. */
-export function getCanvaScopesExample(): string {
-  return CANVA_TEMPLATE_SCOPES_STRING
 }

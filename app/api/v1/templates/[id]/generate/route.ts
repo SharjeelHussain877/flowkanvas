@@ -1,59 +1,46 @@
-import { NextResponse } from "next/server"
-
 import { authenticateApiRequest } from "@/lib/api/authenticate-api-request"
-import { handleApiKeysRouteError } from "@/lib/api/api-keys-route"
 import { assertRateLimit } from "@/lib/api/rate-limit"
-import { handleCanvaRouteError } from "@/lib/api/canva-route"
-import { CanvaServiceError } from "@/lib/services/canva/errors"
-import { generateCanvaPdf } from "@/lib/services/canva/generate-pdf"
-import { generateCanvaPdfSchema } from "@/schemas/canva/generate-pdf"
+import {
+  handleTemplatesRouteError,
+  pdfResponse,
+  wantsInlinePdf,
+} from "@/lib/api/templates-route"
+import { parseGenerateRequest } from "@/lib/pdf/parse-generate-request"
+import { generateTemplatePdf } from "@/lib/services/templates/generate-template-pdf"
+import { getTemplateForApiKey } from "@/lib/services/templates/get-template-for-api-key"
 
 type RouteContext = {
   params: Promise<{ id: string }>
 }
 
+/**
+ * Public API: render a template to PDF.
+ * Body: JSON `{ "payload": { "name": "Ali", "photo": "https://..." } }` or
+ * multipart/form-data with text fields for variables and file fields for images.
+ */
 export async function POST(request: Request, context: RouteContext) {
   try {
     const auth = await authenticateApiRequest(request)
     assertRateLimit({
       key: `v1:generate:${auth.userId}`,
-      limit: 8,
+      limit: 30,
       windowMs: 60_000,
       userId: auth.userId,
     })
 
     const { id } = await context.params
-    const kind = new URL(request.url).searchParams.get("kind")
-    const body = await request.json().catch(() => ({}))
-    const parsed = generateCanvaPdfSchema.safeParse(body)
+    const template = await getTemplateForApiKey(id, auth.userId)
+    const payload = await parseGenerateRequest(request)
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid payload. Send JSON like { \"payload\": { \"name\": \"Ali\" } }." },
-        { status: 400 }
-      )
-    }
-
-    const result = await generateCanvaPdf({
+    const result = await generateTemplatePdf({
+      template,
       userId: auth.userId,
-      templateId: id,
-      kind: parsed.data.kind ?? kind,
-      payload: parsed.data.payload,
+      payload,
+      source: "api",
     })
 
-    return new NextResponse(new Uint8Array(result.bytes), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${result.filename}"`,
-        ...(result.warning ? { "X-Flowkanvas-Warning": result.warning } : {}),
-      },
-    })
+    return pdfResponse(result, wantsInlinePdf(request))
   } catch (error) {
-    if (error instanceof CanvaServiceError) {
-      return handleCanvaRouteError(error)
-    }
-
-    return handleApiKeysRouteError(error)
+    return handleTemplatesRouteError(error)
   }
 }

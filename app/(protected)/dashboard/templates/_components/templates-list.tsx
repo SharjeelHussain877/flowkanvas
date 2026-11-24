@@ -1,17 +1,22 @@
 "use client"
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { ExternalLink } from "lucide-react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { LayoutTemplate, Plus } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { TemplatePreviewCard } from "@/app/(protected)/dashboard/templates/_components/template-preview-card"
 import { useStaggeredReveal } from "@/app/(protected)/dashboard/templates/_components/use-staggered-reveal"
-import { ConnectCanvaButton } from "@/components/canva/connect-canva-button"
-import { CanvaIcon } from "@/components/canva/canva-icon"
-import { PoweredByCanva } from "@/components/canva/powered-by-canva"
-import { Spinner } from "@/components/feedback/spinner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -22,71 +27,50 @@ import {
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { apiClient } from "@/lib/api/client"
-import type { CanvaConnectFlash } from "@/lib/canva/oauth-notice"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
 import { queryKeys } from "@/lib/query/keys"
+import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
 import type {
-  CanvaTemplatesApiResponse,
-  CanvaTemplatesPageData,
-} from "@/schemas/canva/templates"
-import { cn } from "@/lib/utils"
+  DeleteTemplateApiResponse,
+  TemplateRecord,
+  TemplatesListResponse,
+} from "@/schemas/templates/template"
 
 type TemplatesListProps = {
-  initialData: CanvaTemplatesPageData
+  initialData: TemplateRecord[]
   loadError?: string | null
-  connectFlash?: CanvaConnectFlash | null
 }
 
-function TemplatesGridLoader() {
-  return (
-    <div className="flex min-h-[40vh] items-center justify-center">
-      <Spinner className="size-6" label="Loading templates" />
-    </div>
-  )
-}
-
-export function TemplatesList({
-  initialData,
-  loadError = null,
-  connectFlash = null,
-}: TemplatesListProps) {
-  const router = useRouter()
+export function TemplatesList({ initialData, loadError = null }: TemplatesListProps) {
   const queryClient = useQueryClient()
-  const [notice, setNotice] = useState<CanvaConnectFlash | null>(connectFlash)
+  const [deleteTarget, setDeleteTarget] = useState<TemplateRecord | null>(null)
 
   const templatesQuery = useQuery({
-    queryKey: queryKeys.canva.templates(),
-    queryFn: () => apiClient<CanvaTemplatesApiResponse>("/api/canva/templates"),
+    queryKey: queryKeys.templates.list(),
+    queryFn: () => apiClient<TemplatesListResponse>("/api/templates"),
     initialData: loadError ? undefined : { data: initialData },
     enabled: !loadError,
     select: (response) => response.data,
   })
 
-  useEffect(() => {
-    if (!connectFlash) {
-      return
-    }
+  const deleteMutation = useMutation({
+    meta: backgroundMutationMeta,
+    mutationFn: (id: string) =>
+      apiClient<DeleteTemplateApiResponse>(`/api/templates/${id}`, { method: "DELETE" }),
+    onSuccess: (response) => {
+      queryClient.setQueryData<TemplatesListResponse>(
+        queryKeys.templates.list(),
+        (current) => ({
+          data: (current?.data ?? []).filter((item) => item.id !== response.data.id),
+        })
+      )
+      queryClient.removeQueries({ queryKey: queryKeys.templates.detail(response.data.id) })
+      setDeleteTarget(null)
+    },
+  })
 
-    if (connectFlash.type === "success") {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.canva.templates() })
-    }
-
-    router.replace(dashboardRoutes.templates, { scroll: false })
-  }, [connectFlash, queryClient, router])
-
-  const data = templatesQuery.data ?? initialData
-  const hasTemplateGrid =
-    data.connected && data.items.length > 0 && !loadError
-
-  const isClientLoading =
-    !loadError &&
-    (templatesQuery.isPending || templatesQuery.isFetching) &&
-    !hasTemplateGrid
-
-  const visibleCount = useStaggeredReveal(
-    data.items.length,
-    hasTemplateGrid && !isClientLoading
-  )
+  const templates = templatesQuery.data ?? initialData
+  const visibleCount = useStaggeredReveal(templates.length, templates.length > 0)
 
   if (loadError) {
     return (
@@ -99,135 +83,91 @@ export function TemplatesList({
     )
   }
 
-  if (isClientLoading) {
-    return (
-      <div className="space-y-4">
-        {notice ? (
-          <p
-            className={
-              notice.type === "success"
-                ? "text-sm text-brand-teal"
-                : "text-sm text-destructive"
-            }
-          >
-            {notice.message}
-          </p>
-        ) : null}
-        <TemplatesGridLoader />
-      </div>
-    )
-  }
-
-  if (!data.connected) {
+  if (templates.length === 0) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CanvaIcon size={24} />
-            Connect to Canva
+            <LayoutTemplate className="size-5 text-brand-teal" aria-hidden />
+            No templates yet
           </CardTitle>
           <CardDescription>
-            Works with Canva - authorize flowkanvas to import your designs and
-            brand templates.
+            Create a template, design it on the canvas with text, images and shapes,
+            and use <code>{"{{variables}}"}</code> for the parts that change per PDF.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col items-start gap-4">
-          {notice ? (
-            <p
-              className={
-                notice.type === "success"
-                  ? "text-sm text-brand-teal"
-                  : "text-sm text-destructive"
-              }
-            >
-              {notice.message}
-            </p>
-          ) : null}
-          <ConnectCanvaButton returnTo={dashboardRoutes.templates} />
-          <PoweredByCanva />
+        <CardContent>
+          <Button asChild variant="outline">
+            <Link href={dashboardRoutes.templateNew}>
+              <Plus className="size-4" aria-hidden />
+              Create your first template
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <div className="space-y-4">
-      {notice ? (
-        <p
-          className={
-            notice.type === "success"
-              ? "text-sm text-brand-teal"
-              : "text-sm text-destructive"
+    <>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        {templates.map((template, index) =>
+          index < visibleCount ? (
+            <TemplatePreviewCard
+              key={template.id}
+              template={template}
+              onDelete={() => setDeleteTarget(template)}
+              className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-backwards"
+            />
+          ) : (
+            <Skeleton key={template.id} className="aspect-[3/4] w-full rounded-xl" />
+          )
+        )}
+      </div>
+
+      {deleteMutation.isError ? (
+        <p className="mt-4 text-sm text-destructive">
+          {deleteMutation.error instanceof Error
+            ? deleteMutation.error.message
+            : "Could not delete template"}
+        </p>
+      ) : null}
+
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleteMutation.isPending) {
+            setDeleteTarget(null)
           }
-        >
-          {notice.message}
-        </p>
-      ) : null}
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget
+                ? `"${deleteTarget.name}" will be removed permanently. API requests for it will start failing immediately.`
+                : "This template will be removed permanently."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={(event) => {
+                event.preventDefault()
 
-      {/* <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Open a design to view it in Canva. Manage connection in Settings.
-        </p>
-        <PoweredByCanva />
-      </div> */}
-
-      {data.brandTemplatesError ? (
-        <p className="text-sm text-muted-foreground">{data.brandTemplatesError}</p>
-      ) : null}
-
-      {data.items.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>No Canva templates yet</CardTitle>
-            <CardDescription>
-              Create a design or brand template in Canva, then refresh this page.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline">
-              <a href="https://www.canva.com/create" target="_blank" rel="noreferrer">
-                Open Canva
-                <ExternalLink className="size-4" aria-hidden />
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-          {data.items.map((item, index) => {
-            const isVisible = index < visibleCount
-
-            if (!isVisible) {
-              return (
-                <Skeleton
-                  key={`${item.kind}-${item.id}-placeholder`}
-                  className="aspect-[3/4] w-full rounded-xl"
-                />
-              )
-            }
-
-            return (
-              <TemplatePreviewCard
-                key={`${item.kind}-${item.id}`}
-                item={item}
-                className={cn(
-                  "animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-backwards"
-                )}
-              />
-            )
-          })}
-        </div>
-      )}
-
-      <p className="text-sm text-muted-foreground">
-        Need to disconnect or check account details?{" "}
-        <Link
-          href={dashboardRoutes.settings.general}
-          className="text-brand-teal underline-offset-4 hover:underline"
-        >
-          Go to Settings
-        </Link>
-      </p>
-    </div>
+                if (deleteTarget) {
+                  deleteMutation.mutate(deleteTarget.id)
+                }
+              }}
+            >
+              Delete template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

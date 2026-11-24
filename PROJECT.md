@@ -1,42 +1,81 @@
 # flowkanvas
 
+Canvas-first PDF generation. Users design a page of any size in the in-app editor (text, images, shapes),
+mark dynamic parts with `{{variables}}` or image variables, then call the API with a JSON payload or
+multipart/form-data (text fields + image files) and receive the rendered PDF.
+
+## How it fits together
+
+- Design JSON (`schemas/templates/design.ts`) is the single source of truth: the browser renders it with DOM
+  (`components/templates/design-renderer.tsx`) and the server renders the same JSON to PDF with
+  `@react-pdf/renderer` (`lib/pdf/template-document.tsx`). Units are PDF points, shown as px (A4 = 595 × 842).
+- Fonts are the PDF standard 14 (Helvetica, Times, Courier) so nothing needs embedding (`lib/templates/fonts.ts`).
+- Text variables: `{{name}}` inside any text box. Image variables: an image element bound to a variable name;
+  its static upload (if any) is the fallback when the API does not send that image.
+- `POST /api/v1/templates/[id]/generate` (API key) and `POST /api/templates/[id]/generate` (session, tester)
+  share `lib/pdf/parse-generate-request.ts` → `lib/services/templates/generate-template-pdf.ts`.
+- Every generate call is logged to `render_requests` (shown on `/dashboard/requests`).
+- `next.config.ts` lists `@react-pdf/renderer` in `serverExternalPackages`.
+
 ## Element registry
 
 | Element | Path | Status |
 |---------|------|--------|
 | Dashboard shell | `components/dashboard/dashboard-shell.tsx` | Wired (user in sidebar) |
-| App sidebar (memo) | `components/dashboard/app-sidebar.tsx` | Wired (user props) |
+| App sidebar (memo) | `components/dashboard/app-sidebar.tsx` | Wired (recent templates via React Query) |
 | Sidebar nav link | `components/dashboard/sidebar-nav-link.tsx` | Static UI |
 | Dashboard page wrapper | `components/dashboard/dashboard-page.tsx` | Static UI |
 | Dashboard back navigation | `lib/dashboard/back-navigation.ts` | Config |
+| Dashboard routes | `lib/dashboard/routes.ts` | Config |
 | Dashboard loading | `components/dashboard/dashboard-loading.tsx` | Static UI |
-| Requests page | `app/(protected)/dashboard/requests/page.tsx` | Static UI |
-| Templates page | `app/(protected)/dashboard/templates/page.tsx` | Wired (Canva list + connect) |
+| Dashboard logout button | `components/dashboard/logout-button.tsx` | Wired |
+| Sidebar user menu | `components/dashboard/sidebar-user-menu.tsx` | Wired (current user) |
+| Brand logo | `components/brand-logo.tsx` | Shared asset |
+| Requests page | `app/(protected)/dashboard/requests/page.tsx` | Wired (render log) |
+| Requests list | `app/(protected)/dashboard/requests/_components/requests-list.tsx` | Wired (15s refetch) |
+| Requests API | `app/api/requests/route.ts` | Wired |
+| Render request services | `lib/services/requests/*` | Wired |
+| Templates page | `app/(protected)/dashboard/templates/page.tsx` | Wired |
+| Templates list | `app/(protected)/dashboard/templates/_components/templates-list.tsx` | Wired (grid + delete) |
+| Template preview card | `app/(protected)/dashboard/templates/_components/template-preview-card.tsx` | Wired (live design preview) |
 | Templates loading | `app/(protected)/dashboard/templates/_components/templates-page-skeleton.tsx` | Static UI |
-| Templates list | `app/(protected)/dashboard/templates/_components/templates-list.tsx` | Wired |
-| Template preview card | `app/(protected)/dashboard/templates/_components/template-preview-card.tsx` | Wired |
-| Connect Canva button | `components/canva/connect-canva-button.tsx` | Wired (Canva UI guidelines) |
-| Canva icon | `components/canva/canva-icon.tsx` | Shared asset |
-| Canva icon SVG | `public/brand/canva/canva-icon.svg` | Official asset |
-| Powered by Canva | `components/canva/powered-by-canva.tsx` | Shared UI |
-| Token cipher | `lib/crypto/token-cipher.ts` | Security |
+| New template page | `app/(protected)/dashboard/templates/new/page.tsx` | Wired |
+| New template form | `app/(protected)/dashboard/templates/new/_components/new-template-form.tsx` | Wired (presets + custom size) |
+| Template editor page | `app/(protected)/dashboard/templates/[id]/page.tsx` | Wired |
+| Template editor shell | `app/(protected)/dashboard/templates/[id]/_components/template-editor.tsx` | Wired (save, undo/redo, zoom, shortcuts, Test API sheet) |
+| Editor canvas | `app/(protected)/dashboard/templates/[id]/_components/editor-canvas.tsx` | Wired (drag, resize, inline text edit) |
+| Editor state (reducer) | `app/(protected)/dashboard/templates/[id]/_components/use-editor-state.ts` | Wired (history transactions) |
+| Editor properties panel | `app/(protected)/dashboard/templates/[id]/_components/editor-properties-panel.tsx` | Wired (page/text/image/shape/layer) |
+| Editor API panel | `app/(protected)/dashboard/templates/[id]/_components/editor-api-panel.tsx` | Wired (variables, payload, cURL) |
+| Editor field controls | `app/(protected)/dashboard/templates/[id]/_components/editor-fields.tsx` | Shared UI (page-only) |
+| Editor loading | `app/(protected)/dashboard/templates/[id]/loading.tsx` | Static UI |
+| Design renderer (DOM) | `components/templates/design-renderer.tsx` | Shared (element view, page, fitted preview) |
+| PDF playground / API tester | `components/templates/pdf-playground.tsx` | Wired (text + file inputs, multipart) |
+| Textarea | `components/ui/textarea.tsx` | shadcn primitive |
+| Design schema | `schemas/templates/design.ts` | Zod (shared API + editor) |
+| Template schemas/types | `schemas/templates/template.ts` | Zod + types |
+| Generate payload types | `schemas/templates/generate.ts` | Types + limits |
+| Render request types | `schemas/requests/render-request.ts` | Types |
+| Page size presets | `lib/templates/presets.ts` | Config |
+| Fonts (CSS ↔ PDF) | `lib/templates/fonts.ts` | Config |
+| Variable helpers | `lib/templates/variables.ts` | Pure |
+| Element defaults | `lib/templates/element-defaults.ts` | Pure |
+| PDF document | `lib/pdf/template-document.tsx` | Server (react-pdf) |
+| PDF renderer | `lib/pdf/render-template-pdf.ts` | Server |
+| Image resolver | `lib/pdf/resolve-images.ts` | Server (PNG/JPEG only, SSRF guard, 10 MB) |
+| Generate request parser | `lib/pdf/parse-generate-request.ts` | Server (JSON / multipart / urlencoded) |
+| Template services | `lib/services/templates/*` | Wired (CRUD, API-key access, asset upload, generate) |
+| Templates API (session) | `app/api/templates/*` | Wired |
+| Template assets upload | `app/api/templates/assets/route.ts` | Wired (`template-assets` bucket) |
+| Public API: list/detail | `app/api/v1/templates/route.ts`, `app/api/v1/templates/[id]/route.ts` | Wired (API key) |
+| Public API: generate | `app/api/v1/templates/[id]/generate/route.ts` | Wired (API key, 30/min) |
+| Templates route errors | `lib/api/templates-route.ts` | Wired (+ `pdfResponse`) |
+| API rate limit | `lib/api/rate-limit.ts` | Security (`RateLimitError`) |
 | Security audit log | `lib/security/audit-log.ts` | Security |
-| API rate limit | `lib/api/rate-limit.ts` | Security |
-| Accounts security migration | `supabase/migrations/20260805140000_accounts_security.sql` | SQL |
-| Canva templates API | `app/api/canva/templates/route.ts` | Wired |
-| New template page | `app/(protected)/dashboard/templates/new/page.tsx` | Static UI |
-| Template editor | `app/(protected)/dashboard/templates/[id]/page.tsx` | Wired (Canva dataset payload) |
-| Template payload view | `app/(protected)/dashboard/templates/_components/template-payload-view.tsx` | Wired |
-| Canva template detail API | `app/api/canva/templates/[id]/route.ts` | Wired |
-| Template workspace | `app/(protected)/dashboard/templates/_components/template-workspace.tsx` | Static UI |
-| Settings | `app/(protected)/dashboard/settings/page.tsx` | Wired (profile + security + invites + Canva) |
+| Templates migration | `supabase/migrations/20261124000000_templates.sql` | SQL (templates, render_requests, bucket; drops accounts) |
+| Supabase schema migration | `supabase/migrations/20260726000000_flowkanvas_schema.sql` | SQL |
+| Settings | `app/(protected)/dashboard/settings/page.tsx` | Wired (profile + security + invites) |
 | Settings loading | `app/(protected)/dashboard/settings/_components/settings-page-skeleton.tsx` | Static UI |
-| Canva settings section | `app/(protected)/dashboard/settings/_components/canva-section.tsx` | Wired |
-| Canva OAuth connect | `app/api/auth/canva/connect/route.ts` | Wired |
-| Canva OAuth callback | `app/api/auth/canva/callback/route.ts` | Wired |
-| Canva settings API | `app/api/settings/canva/route.ts` | Wired |
-| Canva services | `lib/services/canva/*` | Wired |
-| Accounts migration | `supabase/migrations/20260726120000_accounts.sql` | SQL |
 | Settings profile API | `app/api/settings/profile/route.ts` | Wired |
 | Settings profile form | `app/(protected)/dashboard/settings/_components/profile-section.tsx` | Wired |
 | Settings change password | `app/(protected)/dashboard/settings/_components/change-password-section.tsx` | Wired |
@@ -44,22 +83,44 @@
 | Settings sessions | `app/(protected)/dashboard/settings/_components/sessions-section.tsx` | Wired |
 | Settings sessions API | `app/api/settings/sessions/*` | Wired |
 | Session services | `lib/services/sessions/*` | Wired |
-| Supabase schema migration | `supabase/migrations/20260726000000_flowkanvas_schema.sql` | SQL |
 | Invite services | `lib/services/invites.ts` | Wired |
-| Settings - API Keys | `app/(protected)/dashboard/settings/api-keys/page.tsx` | Wired (delete + PDF tester) |
+| Settings - API Keys | `app/(protected)/dashboard/settings/api-keys/page.tsx` | Wired (delete + API tester) |
 | API keys loading | `app/(protected)/dashboard/settings/api-keys/_components/api-keys-page-skeleton.tsx` | Static UI |
 | API keys services | `lib/services/api-keys/*` | Wired |
 | API keys routes | `app/api/api-keys/*` | Wired |
 | API key auth | `lib/api/authenticate-api-request.ts` | Wired |
-| Dashboard routes | `lib/dashboard/routes.ts` | Config |
-| Dashboard mock data | `lib/dashboard/mock-data.ts` | Mock |
-| Dashboard logout button | `components/dashboard/logout-button.tsx` | Wired |
-| Sidebar user menu | `components/dashboard/sidebar-user-menu.tsx` | Wired (current user) |
-| Brand logo | `components/brand-logo.tsx` | Shared asset |
 | Recovery hash redirect | `components/auth/recovery-hash-redirect.tsx` | Wired |
 | Password recovery cookie | `lib/auth/password-recovery-cookie.ts` | Config |
 
+## Public API
+
+```
+GET  /api/v1/templates                 -> { data: [{ id, name, width, height, variables: { text, images }, updated_at }] }
+GET  /api/v1/templates/:id             -> { data: { ...template, example_payload } }
+POST /api/v1/templates/:id/generate    -> application/pdf
+```
+
+- Auth: `Authorization: Bearer pdf_sk_live_...`
+- JSON body: `{ "payload": { "name": "Ali", "photo": "https://.../photo.jpg" } }` (flat object also accepted;
+  image values may be URLs or `data:` URIs).
+- multipart/form-data: text fields → text variables, file fields → image variables (PNG/JPEG, ≤10 MB).
+- `?inline=1` returns `Content-Disposition: inline`. Missing variables are reported in
+  `X-Flowkanvas-Missing-Variables`; skipped static images in `X-Flowkanvas-Warning`.
+
 ## Changelog
+
+### 2026-11-24 (canvas editor replaces Canva)
+- Removed the Canva integration entirely (OAuth, token cipher, `accounts` table, Canva API services, brand assets, env vars).
+- New canvas editor at `/dashboard/templates/[id]`: any page size (presets + custom), text / image / rectangle elements,
+  drag + resize handles, double-click inline text editing, properties panel, layer ordering, undo/redo with drag
+  transactions, zoom + fit, keyboard shortcuts (⌘S, ⌘Z, ⌘⇧Z, ⌘D, arrows, ⌫), unsaved-changes guard.
+- `{{variables}}` in text and image variables; API tab shows the endpoint, example payload and cURL (JSON + form-data).
+- Server-side PDF rendering with `@react-pdf/renderer` from the same design JSON; images from form-data files,
+  URLs or data URIs; static images uploaded to the `template-assets` bucket.
+- Public API `GET /api/v1/templates`, `GET /api/v1/templates/:id`, `POST /api/v1/templates/:id/generate`.
+- Requests page now lists real `render_requests` rows (API + tester) with status and duration.
+- Sidebar "Recents" lists real templates. API tester supports file inputs for image variables.
+- Auth: unreachable Supabase now returns a 503 with a clear message instead of crashing the route handler.
 
 ### 2026-08-21 (api keys delete + pdf tester)
 - API keys page can permanently delete a key, plus a playground to fill Canva variables and download a PDF.

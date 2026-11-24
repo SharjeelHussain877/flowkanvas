@@ -1,57 +1,24 @@
-import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { RequestsList } from "@/app/(protected)/dashboard/requests/_components/requests-list"
 import { DashboardPage } from "@/components/dashboard/dashboard-page"
-import { mockRequests } from "@/lib/dashboard/mock-data"
+import { listRenderRequests } from "@/lib/services/requests/list-render-requests"
+import type { RenderRequestRecord } from "@/schemas/requests/render-request"
 
-const statusVariant = {
-  Success: "default",
-  Failed: "destructive",
-  Pending: "secondary",
-} as const
+export default async function RequestsPage() {
+  let initialData: RenderRequestRecord[] = []
+  let loadError: string | null = null
 
-export default function RequestsPage() {
+  try {
+    initialData = await listRenderRequests()
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "Failed to load requests"
+  }
+
   return (
     <DashboardPage
       title="Requests"
-      description="Recent PDF generation requests from your API."
+      description="Recent PDF generation requests from your API keys and the in-app tester."
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent activity</CardTitle>
-          <CardDescription>
-            Static preview of request logs - data wiring comes later.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {mockRequests.map((request) => (
-            <div
-              key={request.id}
-              className="flex flex-col gap-2 rounded-lg border border-border/70 bg-brand-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div>
-                <p className="font-medium text-brand-text-heading">
-                  {request.template}
-                </p>
-                <p className="text-xs text-muted-foreground">{request.id}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground">
-                  {request.createdAt}
-                </span>
-                <Badge variant={statusVariant[request.status]}>
-                  {request.status}
-                </Badge>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <RequestsList initialData={initialData} loadError={loadError} />
     </DashboardPage>
   )
 }

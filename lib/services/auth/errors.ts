@@ -113,6 +113,15 @@ function hasSpecificMessage(message: string | undefined): message is string {
 }
 
 export function mapSupabaseAuthError(error: SupabaseAuthError): AuthServiceError {
+  if (error.status === 0 || error.name === "AuthRetryableFetchError") {
+    return new AuthServiceError(
+      "Could not reach the authentication service. Check SUPABASE_URL and try again.",
+      503,
+      "AUTH_UNREACHABLE",
+      error.message
+    )
+  }
+
   const rawMessage = getSupabaseErrorMessage(error)
   const message = rawMessage.toLowerCase()
 

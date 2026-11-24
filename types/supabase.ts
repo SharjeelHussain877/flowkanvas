@@ -50,52 +50,94 @@ export type Database = {
           },
         ]
       }
-      accounts: {
+      templates: {
         Row: {
+          id: string
           user_id: string
-          access_token: string
-          refresh_token: string
-          token_type: string
-          expires_at: string
-          scopes: string
-          connected_at: string
+          name: string
+          width: number
+          height: number
+          design: Json
+          created_at: string
           updated_at: string
-          canva_user_id: string | null
-          canva_team_id: string | null
-          display_name: string | null
         }
         Insert: {
+          id?: string
           user_id: string
-          access_token: string
-          refresh_token: string
-          token_type?: string
-          expires_at: string
-          scopes: string
-          connected_at?: string
+          name: string
+          width: number
+          height: number
+          design: Json
+          created_at?: string
           updated_at?: string
-          canva_user_id?: string | null
-          canva_team_id?: string | null
-          display_name?: string | null
         }
         Update: {
+          id?: string
           user_id?: string
-          access_token?: string
-          refresh_token?: string
-          token_type?: string
-          expires_at?: string
-          scopes?: string
-          connected_at?: string
+          name?: string
+          width?: number
+          height?: number
+          design?: Json
+          created_at?: string
           updated_at?: string
-          canva_user_id?: string | null
-          canva_team_id?: string | null
-          display_name?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "accounts_user_id_fkey"
+            foreignKeyName: "templates_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      render_requests: {
+        Row: {
+          id: string
+          user_id: string
+          template_id: string | null
+          template_name: string
+          status: string
+          source: string
+          duration_ms: number
+          error: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          template_id?: string | null
+          template_name: string
+          status: string
+          source: string
+          duration_ms?: number
+          error?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          template_id?: string | null
+          template_name?: string
+          status?: string
+          source?: string
+          duration_ms?: number
+          error?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "render_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "render_requests_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
             referencedColumns: ["id"]
           },
         ]
@@ -137,3 +179,5 @@ export type Database = {
 }
 
 export type ApiKeyRow = Database["public"]["Tables"]["api_keys"]["Row"]
+export type TemplateRow = Database["public"]["Tables"]["templates"]["Row"]
+export type RenderRequestRow = Database["public"]["Tables"]["render_requests"]["Row"]

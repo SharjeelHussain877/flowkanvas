@@ -5,44 +5,25 @@ import { TemplatesList } from "@/app/(protected)/dashboard/templates/_components
 import { authPrimaryButtonClassName } from "@/app/(auth)/_components/auth-submit-button"
 import { DashboardPage } from "@/components/dashboard/dashboard-page"
 import { Button } from "@/components/ui/button"
-import {
-  getCanvaConnectFlash,
-  type CanvaOAuthSearchParams,
-} from "@/lib/canva/oauth-notice"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
-import { getCanvaTemplatesPageData } from "@/lib/services/canva/get-templates-page-data"
-import type { CanvaTemplatesPageData } from "@/schemas/canva/templates"
+import { listTemplates } from "@/lib/services/templates/list-templates"
+import type { TemplateRecord } from "@/schemas/templates/template"
 import { cn } from "@/lib/utils"
 
-type TemplatesPageProps = {
-  searchParams: Promise<CanvaOAuthSearchParams>
-}
-
-export default async function TemplatesPage({ searchParams }: TemplatesPageProps) {
-  const canvaSearchParams = await searchParams
-  const connectFlash = getCanvaConnectFlash(canvaSearchParams)
-
-  let initialData: CanvaTemplatesPageData = {
-    connected: false,
-    items: [],
-    brandTemplatesError: null,
-  }
+export default async function TemplatesPage() {
+  let initialData: TemplateRecord[] = []
   let loadError: string | null = null
 
   try {
-    initialData = await getCanvaTemplatesPageData()
+    initialData = await listTemplates()
   } catch (error) {
-    loadError = error instanceof Error ? error.message : "Failed to load Canva templates"
+    loadError = error instanceof Error ? error.message : "Failed to load templates"
   }
 
   return (
     <DashboardPage
       title="Templates"
-      description={
-        initialData.connected
-          ? "Designs and brand templates from your connected Canva account."
-          : "Connect to Canva to import designs and brand templates."
-      }
+      description="Design a page of any size, add variables, then generate PDFs through the API."
       action={
         <Button asChild className={cn(authPrimaryButtonClassName, "px-4")}>
           <Link href={dashboardRoutes.templateNew}>
@@ -52,11 +33,7 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
         </Button>
       }
     >
-      <TemplatesList
-        initialData={initialData}
-        loadError={loadError}
-        connectFlash={connectFlash}
-      />
+      <TemplatesList initialData={initialData} loadError={loadError} />
     </DashboardPage>
   )
 }

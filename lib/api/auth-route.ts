@@ -1,6 +1,11 @@
 import { AuthServiceError } from "@/lib/services/auth/errors"
 import { ResetTokenError } from "@/lib/services/auth/change-password"
 
+/** Network failures surface as status 0 from supabase-js; Response.json requires 200-599. */
+function toHttpStatus(status: number): number {
+  return Number.isInteger(status) && status >= 200 && status <= 599 ? status : 503
+}
+
 export function handleAuthRouteError(error: unknown) {
   if (error instanceof AuthServiceError) {
     const body: {
@@ -16,7 +21,7 @@ export function handleAuthRouteError(error: unknown) {
       body.details = error.details
     }
 
-    return Response.json(body, { status: error.status })
+    return Response.json(body, { status: toHttpStatus(error.status) })
   }
 
   if (error instanceof ResetTokenError) {

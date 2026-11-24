@@ -12,9 +12,13 @@ export const queryKeys = {
     all: ["sessions"] as const,
     list: () => [...queryKeys.sessions.all, "list"] as const,
   },
-  canva: {
-    all: ["canva"] as const,
-    connection: () => [...queryKeys.canva.all, "connection"] as const,
-    templates: () => [...queryKeys.canva.all, "templates"] as const,
+  templates: {
+    all: ["templates"] as const,
+    list: () => [...queryKeys.templates.all, "list"] as const,
+    detail: (id: string) => [...queryKeys.templates.all, "detail", id] as const,
+  },
+  requests: {
+    all: ["requests"] as const,
+    list: () => [...queryKeys.requests.all, "list"] as const,
   },
 } as const

@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
 import { memo, useEffect, useState } from "react"
 
 import { BrandLogo } from "@/components/brand-logo"
@@ -38,19 +39,30 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { recentDraftTemplates } from "@/lib/dashboard/mock-data"
+import { apiClient } from "@/lib/api/client"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
+import { queryKeys } from "@/lib/query/keys"
+import type { TemplatesListResponse } from "@/schemas/templates/template"
 import { cn } from "@/lib/utils"
 
 type AppSidebarProps = {
   user: SidebarUser
 }
 
+const RECENT_TEMPLATE_LIMIT = 12
+
 function AppSidebarComponent({ user }: AppSidebarProps) {
   const pathname = usePathname()
   const { setOpenMobile, state } = useSidebar()
   const [recentsOpen, setRecentsOpen] = useState(true)
   const isCollapsed = state === "collapsed"
+
+  const templatesQuery = useQuery({
+    queryKey: queryKeys.templates.list(),
+    queryFn: () => apiClient<TemplatesListResponse>("/api/templates"),
+    select: (response) => response.data.slice(0, RECENT_TEMPLATE_LIMIT),
+  })
+  const recentTemplates = templatesQuery.data ?? []
 
   useEffect(() => {
     setOpenMobile(false)
@@ -126,18 +138,23 @@ function AppSidebarComponent({ user }: AppSidebarProps) {
               </CollapsibleTrigger>
             </SidebarGroupLabel>
             <p className="shrink-0 px-2 pb-1 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-              All drafts template
+              Recently edited templates
             </p>
             <CollapsibleContent className="min-h-0 flex-1 overflow-hidden">
               <ScrollArea className="h-full [&>[data-slot=scroll-area-viewport]>div]:!block">
                 <SidebarGroupContent>
                   <SidebarMenu>
                     <SidebarMenuSub>
-                      {recentDraftTemplates.map((template) => (
-                        <SidebarMenuSubItem key={template.slug}>
+                      {recentTemplates.length === 0 && !templatesQuery.isPending ? (
+                        <li className="px-2 py-1 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+                          No templates yet
+                        </li>
+                      ) : null}
+                      {recentTemplates.map((template) => (
+                        <SidebarMenuSubItem key={template.id}>
                           <SidebarNavLink
-                            href={dashboardRoutes.template(template.slug)}
-                            title={template.title}
+                            href={dashboardRoutes.template(template.id)}
+                            title={template.name}
                             nested
                           />
                         </SidebarMenuSubItem>

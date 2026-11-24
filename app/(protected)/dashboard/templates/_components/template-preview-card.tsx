@@ -1,100 +1,98 @@
 "use client"
 
-import { LayoutTemplate } from "lucide-react"
+import { Braces, Trash2 } from "lucide-react"
 import Link from "next/link"
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { DesignPreview } from "@/components/templates/design-renderer"
+import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { dashboardRoutes } from "@/lib/dashboard/routes"
-import type { CanvaTemplateListItem } from "@/schemas/canva/templates"
+import { findPresetBySize } from "@/lib/templates/presets"
+import { extractTemplateVariables } from "@/lib/templates/variables"
+import type { TemplateRecord } from "@/schemas/templates/template"
 import { cn } from "@/lib/utils"
 
 type TemplatePreviewCardProps = {
-  item: CanvaTemplateListItem
+  template: TemplateRecord
+  onDelete: () => void
   className?: string
 }
 
-export function TemplatePreviewCard({ item, className }: TemplatePreviewCardProps) {
-  const sizeText = item.sizeLabel
-    ? item.orientationLabel
-      ? `${item.sizeLabel} · ${item.orientationLabel}`
-      : item.sizeLabel
-    : null
+function formatUpdatedAt(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value))
+}
 
-  const kindLabel =
-    item.kind === "brand_template" ? "Canva brand template" : "Canva design"
-  const href = dashboardRoutes.template(item.id, item.kind)
+export function TemplatePreviewCard({
+  template,
+  onDelete,
+  className,
+}: TemplatePreviewCardProps) {
+  const variables = extractTemplateVariables(template.design)
+  const variableCount = variables.text.length + variables.images.length
+  const preset = findPresetBySize(template.width, template.height)
+  const sizeLabel = preset
+    ? preset.label
+    : `${template.width} × ${template.height} px`
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link
-          href={href}
-          aria-label={`View payload keys for ${item.title}`}
-          className={cn(
-            "group block overflow-hidden rounded-xl transition-shadow hover:shadow-md",
-            className
-          )}
-        >
-          <div className="relative aspect-[3/4] w-full overflow-hidden bg-brand-surface">
-            {item.thumbnailUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={item.thumbnailUrl}
-                alt={`${kindLabel}: ${item.title}`}
-                className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.02]"
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-brand-mist/40 text-brand-slate">
-                <LayoutTemplate className="size-10 opacity-40" aria-hidden />
-              </div>
-            )}
+    <div
+      className={cn(
+        "group relative flex flex-col overflow-hidden rounded-xl border border-border/70 bg-card transition-shadow hover:shadow-md",
+        className
+      )}
+    >
+      <Link
+        href={dashboardRoutes.template(template.id)}
+        aria-label={`Open ${template.name} in the editor`}
+        className="block"
+      >
+        <div className="aspect-[3/4] w-full bg-brand-mist/40 p-3">
+          <DesignPreview design={template.design} className="h-full w-full" />
+        </div>
+      </Link>
 
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background: `
-              radial-gradient(ellipse 150% 95% at 50% 100%, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.28) 38%, rgba(0, 0, 0, 0.08) 62%, transparent 88%),
-              linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.22) 28%, rgba(0, 0, 0, 0.08) 52%, rgba(0, 0, 0, 0.02) 72%, transparent 100%)
-            `,
-              }}
-            />
+      <div className="flex items-start justify-between gap-2 px-3 py-3">
+        <div className="min-w-0">
+          <Link
+            href={dashboardRoutes.template(template.id)}
+            className="line-clamp-1 text-sm font-medium text-brand-text-heading hover:underline"
+          >
+            {template.name}
+          </Link>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {sizeLabel} · {formatUpdatedAt(template.updated_at)}
+          </p>
+        </div>
 
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
-              style={{
-                background: `
-              radial-gradient(ellipse 150% 95% at 50% 100%, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.42) 40%, rgba(0, 0, 0, 0.14) 68%, transparent 92%),
-              linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.38) 32%, rgba(0, 0, 0, 0.12) 58%, transparent 100%)
-            `,
-              }}
-            />
-
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-4 pt-16">
-              <div className="translate-y-5 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0 group-hover:opacity-100">
-                <p className="line-clamp-2 text-sm font-medium leading-snug text-white drop-shadow-sm">
-                  {item.title}
-                </p>
-                <p className="mt-1.5 text-xs text-white/80 drop-shadow-sm">
-                  {kindLabel} · Updated {item.updatedAt}
-                </p>
-              </div>
-
-              {sizeText ? (
-                <p className="mt-2 text-[11px] font-medium tracking-wide text-white/85 drop-shadow-sm">
-                  {sizeText}
-                </p>
-              ) : null}
-            </div>
-          </div>
-        </Link>
-      </TooltipTrigger>
-      <TooltipContent side="top">View payload keys</TooltipContent>
-    </Tooltip>
+        <div className="flex shrink-0 items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                <Braces className="size-3" aria-hidden />
+                {variableCount}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              {variableCount === 0
+                ? "No variables yet"
+                : [...variables.text, ...variables.images].join(", ")}
+            </TooltipContent>
+          </Tooltip>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Delete ${template.name}`}
+            className="text-muted-foreground hover:text-destructive"
+            onClick={onDelete}
+          >
+            <Trash2 className="size-4" aria-hidden />
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }

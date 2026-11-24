@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { PdfPlayground } from "@/components/canva/pdf-playground"
+import { PdfPlayground } from "@/components/templates/pdf-playground"
 import { apiClient } from "@/lib/api/client"
 import { copyToClipboard } from "@/lib/copy-to-clipboard"
 import { queryKeys } from "@/lib/query/keys"
@@ -380,15 +380,25 @@ export function ApiKeysPanel({ initialData, loadError = null }: ApiKeysPanelProp
           <CardHeader>
             <CardTitle>Usage snippet</CardTitle>
             <CardDescription>
-              Example request using your flowkanvas API key.
+              Find TEMPLATE_ID in the editor&apos;s API tab. Images can be files in
+              form-data, or URLs / data URIs in JSON.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <pre className="overflow-x-auto rounded-xl bg-brand-navy p-4 text-xs text-brand-mist">
-              {`curl -X POST /api/v1/templates/DAHE-QhxVUM/generate?kind=design \\
+              {`# JSON payload - text variables
+curl -X POST /api/v1/templates/TEMPLATE_ID/generate \\
   -H "Authorization: Bearer ${exampleMaskedKey}" \\
   -H "Content-Type: application/json" \\
-  -d '{"payload":{"name":"Ali","father_name":"Ahmed"}}'`}
+  -d '{"payload":{"name":"Ali","course":"Design 101"}}' \\
+  --output certificate.pdf
+
+# multipart/form-data - text + image variables
+curl -X POST /api/v1/templates/TEMPLATE_ID/generate \\
+  -H "Authorization: Bearer ${exampleMaskedKey}" \\
+  -F "name=Ali" \\
+  -F "photo=@/path/to/photo.jpg" \\
+  --output certificate.pdf`}
             </pre>
           </CardContent>
           <CardFooter>
