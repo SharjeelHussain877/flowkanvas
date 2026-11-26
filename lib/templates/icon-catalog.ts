@@ -124,5 +124,3 @@ export const iconCatalog: Record<string, IconNode> = {
 }
 
 export const iconNames = Object.keys(iconCatalog)
-
-export const DEFAULT_ICON_NAME = "award"

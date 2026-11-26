@@ -14,13 +14,6 @@ export function findPage(design: TemplateDesign, pageId: string): DesignPage | u
   return design.pages.find((page) => page.id === pageId)
 }
 
-export function findElementPage(
-  design: TemplateDesign,
-  elementId: string
-): DesignPage | undefined {
-  return design.pages.find((page) => page.elements.some((element) => element.id === elementId))
-}
-
 export function replacePage(
   design: TemplateDesign,
   pageId: string,
@@ -97,8 +90,7 @@ export function expandGroupSelection(page: DesignPage, ids: readonly string[]): 
 export const ELEMENT_TYPE_LABELS: Record<DesignElement["type"], string> = {
   text: "Text",
   image: "Image",
-  rect: "Rectangle",
-  ellipse: "Ellipse",
+  shape: "Shape",
   line: "Line",
   icon: "Icon",
   qrcode: "QR code",

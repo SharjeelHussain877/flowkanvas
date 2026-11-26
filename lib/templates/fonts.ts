@@ -5,8 +5,8 @@ import {
   type StandardFontFamily,
 } from "@/schemas/templates/design"
 
-export const CUSTOM_FONT_PREFIX = "custom:"
-export const DEFAULT_FONT_FAMILY: StandardFontFamily = "helvetica"
+const CUSTOM_FONT_PREFIX = "custom:"
+const DEFAULT_FONT_FAMILY: StandardFontFamily = "helvetica"
 
 type StandardFontOption = {
   value: StandardFontFamily
@@ -37,14 +37,6 @@ export function getCustomFontName(family: string): string {
   return isCustomFontFamily(family) ? family.slice(CUSTOM_FONT_PREFIX.length) : family
 }
 
-export function getFontLabel(family: string): string {
-  if (isStandardFontFamily(family)) {
-    return standardFontOptions.find((option) => option.value === family)?.label ?? family
-  }
-
-  return getCustomFontName(family)
-}
-
 export function getCssFontFamily(family: FontFamily): string {
   if (isStandardFontFamily(family)) {
     return (
@@ -61,7 +53,7 @@ export function getCssFontFamily(family: FontFamily): string {
 }
 
 /** Maps a standard family + style to the PDF standard 14 font name (no embedding required). */
-export function getPdfFontName(
+function getPdfFontName(
   family: StandardFontFamily,
   bold: boolean,
   italic: boolean

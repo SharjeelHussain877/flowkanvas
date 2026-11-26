@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server"
 
 import { handleTemplatesRouteError } from "@/lib/api/templates-route"
-import { uploadTemplateAsset } from "@/lib/services/templates/upload-template-asset"
+import { listAssets } from "@/lib/services/assets/list-assets"
+import { uploadAsset } from "@/lib/services/assets/upload-asset"
 
+export async function GET() {
+  try {
+    const data = await listAssets()
+    return NextResponse.json({ data })
+  } catch (error) {
+    return handleTemplatesRouteError(error)
+  }
+}
+
+/** multipart/form-data with a single `file` field (PNG or JPEG). */
 export async function POST(request: Request) {
   let formData: FormData
 
@@ -13,18 +24,14 @@ export async function POST(request: Request) {
   }
 
   const file = formData.get("file")
-  const templateId = formData.get("templateId")
 
   if (!(file instanceof File) || file.size === 0) {
     return NextResponse.json({ error: "Choose an image to upload" }, { status: 400 })
   }
 
   try {
-    const data = await uploadTemplateAsset(
-      file,
-      typeof templateId === "string" && templateId ? templateId : null
-    )
-    return NextResponse.json({ data })
+    const data = await uploadAsset(file)
+    return NextResponse.json({ data }, { status: 201 })
   } catch (error) {
     return handleTemplatesRouteError(error)
   }

@@ -3,29 +3,18 @@ import type {
   BarcodeElement,
   DesignElement,
   DesignPage,
-  EllipseElement,
   IconElement,
   ImageElement,
   LineElement,
   QrCodeElement,
-  RectElement,
+  ShapeElement,
+  ShapeKind,
   TemplateDesign,
   TextElement,
 } from "@/schemas/templates/design"
 import { DESIGN_VERSION } from "@/schemas/templates/design"
 
-export { createElementId } from "@/lib/templates/ids"
-
-export type ToolKind =
-  | "text"
-  | "variable"
-  | "image"
-  | "rect"
-  | "ellipse"
-  | "line"
-  | "icon"
-  | "qrcode"
-  | "barcode"
+export type ToolKind = "text" | "variable" | "line" | "icon" | "qrcode" | "barcode"
 
 export function createEmptyPage(background = "#ffffff"): DesignPage {
   return { id: createPageId(), background, elements: [] }
@@ -72,11 +61,12 @@ export function createTextElement(
     align: "left",
     verticalAlign: "top",
     lineHeight: 1.2,
+    autoFit: true,
     ...overrides,
   }
 }
 
-export function createVariableTextElement(
+function createVariableTextElement(
   design: TemplateDesign,
   name = "name"
 ): TextElement {
@@ -98,43 +88,57 @@ export function createImageElement(
     ...centeredBox(design, Math.min(200, design.width * 0.4), Math.min(200, design.height * 0.4)),
     src: null,
     variable: null,
-    fit: "contain",
+    fit: "cover",
+    shape: "rect",
     radius: 0,
     ...overrides,
   }
 }
 
-export function createRectElement(
+/** Places an image from the library at a size that keeps its aspect ratio inside the page. */
+export function createImageElementForAsset(
   design: TemplateDesign,
-  overrides: Partial<RectElement> = {}
-): RectElement {
-  return {
-    id: createElementId(),
-    type: "rect",
-    ...extras,
-    ...centeredBox(design, Math.min(240, design.width * 0.5), Math.min(120, design.height * 0.3)),
-    fill: "#599692",
-    stroke: "",
-    strokeWidth: 0,
-    radius: 8,
-    ...overrides,
+  src: string,
+  naturalWidth: number,
+  naturalHeight: number
+): ImageElement {
+  const maxWidth = design.width * 0.5
+  const maxHeight = design.height * 0.5
+  const ratio = naturalWidth > 0 && naturalHeight > 0 ? naturalWidth / naturalHeight : 1
+  let width = Math.min(maxWidth, naturalWidth || maxWidth)
+  let height = width / ratio
+
+  if (height > maxHeight) {
+    height = maxHeight
+    width = height * ratio
   }
+
+  return createImageElement(design, {
+    ...centeredBox(design, Math.round(width), Math.round(height)),
+    src,
+  })
 }
 
-export function createEllipseElement(
+export function createShapeElement(
   design: TemplateDesign,
-  overrides: Partial<EllipseElement> = {}
-): EllipseElement {
+  kind: ShapeKind,
+  overrides: Partial<ShapeElement> = {}
+): ShapeElement {
+  const isRect = kind === "rect"
   const size = Math.min(160, design.width * 0.4, design.height * 0.4)
 
   return {
     id: createElementId(),
-    type: "ellipse",
+    type: "shape",
     ...extras,
-    ...centeredBox(design, size, size),
-    fill: "#dfe5ec",
-    stroke: "#599692",
-    strokeWidth: 3,
+    ...(isRect
+      ? centeredBox(design, Math.min(240, design.width * 0.5), Math.min(120, design.height * 0.3))
+      : centeredBox(design, size, size)),
+    kind,
+    fill: isRect ? "#599692" : "#dfe5ec",
+    stroke: isRect ? "" : "#599692",
+    strokeWidth: isRect ? 0 : 3,
+    radius: isRect ? 8 : 0,
     ...overrides,
   }
 }
@@ -213,16 +217,8 @@ export function createBarcodeElement(
 
 export function createElementForTool(design: TemplateDesign, kind: ToolKind): DesignElement {
   switch (kind) {
-    case "text":
-      return createTextElement(design)
     case "variable":
       return createVariableTextElement(design)
-    case "image":
-      return createImageElement(design)
-    case "rect":
-      return createRectElement(design)
-    case "ellipse":
-      return createEllipseElement(design)
     case "line":
       return createLineElement(design)
     case "icon":
@@ -236,7 +232,7 @@ export function createElementForTool(design: TemplateDesign, kind: ToolKind): De
   }
 }
 
-export function duplicateElement(element: DesignElement, offset = 16): DesignElement {
+function duplicateElement(element: DesignElement, offset = 16): DesignElement {
   return {
     ...element,
     id: createElementId(),

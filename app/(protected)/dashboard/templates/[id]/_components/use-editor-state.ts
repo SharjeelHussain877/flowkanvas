@@ -13,12 +13,11 @@ import type {
   BarcodeElement,
   DesignElement,
   DesignPage,
-  EllipseElement,
   IconElement,
   ImageElement,
   LineElement,
   QrCodeElement,
-  RectElement,
+  ShapeElement,
   TemplateDesign,
   TextElement,
 } from "@/schemas/templates/design"
@@ -31,8 +30,7 @@ type PatchOf<T> = Partial<Omit<T, "id" | "type">>
 export type ElementPatch =
   | PatchOf<TextElement>
   | PatchOf<ImageElement>
-  | PatchOf<RectElement>
-  | PatchOf<EllipseElement>
+  | PatchOf<ShapeElement>
   | PatchOf<LineElement>
   | PatchOf<IconElement>
   | PatchOf<QrCodeElement>

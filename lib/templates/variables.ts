@@ -5,7 +5,7 @@ import {
 } from "@/schemas/templates/design"
 import type { TemplateVariables } from "@/schemas/templates/template"
 
-export function extractTextVariables(text: string): string[] {
+function extractTextVariables(text: string): string[] {
   const names = new Set<string>()
 
   for (const match of text.matchAll(TEMPLATE_VARIABLE_PATTERN)) {

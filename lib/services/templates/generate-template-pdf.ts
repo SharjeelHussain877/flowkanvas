@@ -17,7 +17,7 @@ export type GenerateTemplatePdfResult = {
   warnings: string[]
 }
 
-export function toPdfFilename(name: string): string {
+function toPdfFilename(name: string): string {
   const base = name.replace(/[^a-zA-Z0-9-_ ]+/g, "").trim() || "template"
   return `${base.replace(/\s+/g, "-").slice(0, 60)}.pdf`
 }

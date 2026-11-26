@@ -71,10 +71,6 @@ export type DeleteTemplateApiResponse = {
   data: { id: string }
 }
 
-export type TemplateAssetUploadResponse = {
-  data: { url: string }
-}
-
 /** Public API shape (API key consumers). */
 export type PublicTemplate = {
   id: string

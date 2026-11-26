@@ -1,6 +1,5 @@
 "use client"
 
-import { useMutation } from "@tanstack/react-query"
 import {
   AlignCenter,
   AlignLeft,
@@ -8,11 +7,11 @@ import {
   ArrowDownToLine,
   ArrowUpToLine,
   Bold,
-  ImageUp,
+  Images,
   Italic,
   type LucideIcon,
 } from "lucide-react"
-import { useRef, useState } from "react"
+import { useState } from "react"
 
 import {
   ColorField,
@@ -24,8 +23,8 @@ import {
   ToggleGroup,
   type TransactionHandlers,
 } from "@/app/(protected)/dashboard/templates/[id]/_components/editor-fields"
+import { useEditorUi } from "@/app/(protected)/dashboard/templates/[id]/_components/editor-ui-context"
 import type { ElementPatch } from "@/app/(protected)/dashboard/templates/[id]/_components/use-editor-state"
-import { FontsDialog } from "@/components/templates/fonts-dialog"
 import { IconGlyph } from "@/components/templates/icon-glyph"
 import { formatIconName, IconPickerDialog } from "@/components/templates/icon-picker-dialog"
 import { Button } from "@/components/ui/button"
@@ -42,24 +41,21 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { apiClient } from "@/lib/api/client"
 import { BARCODE_FORMAT_HINTS, BARCODE_FORMAT_LABELS } from "@/lib/barcodes"
 import { useFontsQuery } from "@/lib/query/hooks/use-fonts"
-import { backgroundMutationMeta } from "@/lib/query/mutation-meta"
 import {
   getCustomFontName,
   groupFontFamilies,
   isCustomFontFamily,
   isStandardFontFamily,
   standardFontOptions,
-  toCustomFontFamily,
 } from "@/lib/templates/fonts"
+import { SHAPE_KIND_LABELS, SHAPE_KINDS } from "@/lib/templates/shapes"
 import {
   TEMPLATE_VARIABLE_NAME_PATTERN,
   type BarcodeElement,
   type BarcodeFormat,
   type DesignElement,
-  type EllipseElement,
   type IconElement,
   type ImageElement,
   type ImageFit,
@@ -67,12 +63,12 @@ import {
   type LineOrientation,
   type QrCodeElement,
   type QrErrorCorrection,
-  type RectElement,
+  type ShapeElement,
+  type ShapeKind,
   type TextAlign,
   type TextElement,
   type VerticalAlign,
 } from "@/schemas/templates/design"
-import type { TemplateAssetUploadResponse } from "@/schemas/templates/template"
 
 type SectionProps<T extends DesignElement> = {
   element: T
@@ -90,15 +86,11 @@ export function sanitizeVariableName(raw: string): string {
   return raw.trim().replace(/[^A-Za-z0-9_]/g, "_").replace(/^(\d)/, "_$1")
 }
 
-function FontPicker({
-  value,
-  onChange,
-}: {
-  value: string
-  onChange: (family: string) => void
-}) {
+const shapeOptions = SHAPE_KINDS.map((kind) => ({ value: kind, label: SHAPE_KIND_LABELS[kind] }))
+
+function FontPicker({ value, onChange }: { value: string; onChange: (family: string) => void }) {
   const fontsQuery = useFontsQuery()
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const { openAssets } = useEditorUi()
   const families = groupFontFamilies(fontsQuery.data ?? [])
   const isMissingCustom =
     isCustomFontFamily(value) && !families.some((family) => family.family === value)
@@ -112,7 +104,7 @@ function FontPicker({
         value={value}
         onValueChange={(next) => {
           if (next === MANAGE_FONTS_VALUE) {
-            setDialogOpen(true)
+            openAssets("fonts")
             return
           }
 
@@ -160,11 +152,6 @@ function FontPicker({
       ) : !isStandardFontFamily(value) ? (
         <p className="text-xs text-muted-foreground">Embedded in the PDF.</p>
       ) : null}
-      <FontsDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onUploaded={(font) => onChange(toCustomFontFamily(font.name))}
-      />
     </div>
   )
 }
@@ -200,6 +187,18 @@ function TextProperties({ element, update, transaction }: SectionProps<TextEleme
           transaction={transaction}
         />
       </div>
+
+      <SwitchField
+        id="text-auto-fit"
+        label="Shrink text to fit the box"
+        checked={element.autoFit}
+        onChange={(autoFit) => update({ autoFit })}
+      />
+      <p className="text-xs text-muted-foreground">
+        {element.autoFit
+          ? "Long values get a smaller font instead of being cut off. Size above is the maximum."
+          : "Text that does not fit is clipped at the box edge."}
+      </p>
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
@@ -274,60 +273,22 @@ function TextProperties({ element, update, transaction }: SectionProps<TextEleme
   )
 }
 
-function ImageProperties({
-  element,
-  templateId,
-  update,
-  transaction,
-}: SectionProps<ImageElement> & { templateId: string }) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const uploadMutation = useMutation({
-    meta: backgroundMutationMeta,
-    mutationFn: (file: File) => {
-      const formData = new FormData()
-      formData.set("file", file)
-      formData.set("templateId", templateId)
-
-      return apiClient<TemplateAssetUploadResponse>("/api/templates/assets", {
-        method: "POST",
-        body: formData,
-      })
-    },
-    onSuccess: (response) => {
-      update({ src: response.data.url })
-    },
-  })
+function ImageProperties({ element, update, transaction }: SectionProps<ImageElement>) {
+  const { openAssets } = useEditorUi()
 
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <span className="text-xs text-brand-text-muted">Static image</span>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png,image/jpeg"
-          className="sr-only"
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-
-            if (file) {
-              uploadMutation.mutate(file)
-            }
-
-            event.target.value = ""
-          }}
-        />
+        <span className="text-xs text-brand-text-muted">Image</span>
         <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            disabled={uploadMutation.isPending}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => openAssets("images", { replaceImageId: element.id })}
           >
-            <ImageUp className="size-3.5" aria-hidden />
-            {element.src ? "Replace" : "Upload PNG / JPEG"}
+            <Images className="size-3.5" aria-hidden />
+            {element.src ? "Change image" : "Choose from assets"}
           </Button>
           {element.src ? (
             <Button type="button" variant="ghost" size="sm" onClick={() => update({ src: null })}>
@@ -335,11 +296,6 @@ function ImageProperties({
             </Button>
           ) : null}
         </div>
-        {uploadMutation.isError ? (
-          <p className="text-xs text-destructive">
-            {uploadMutation.error instanceof Error ? uploadMutation.error.message : "Upload failed"}
-          </p>
-        ) : null}
         {element.src && element.variable ? (
           <p className="text-xs text-muted-foreground">
             Used as a placeholder when the API does not send <code>{element.variable}</code>.
@@ -370,17 +326,26 @@ function ImageProperties({
       </div>
 
       <div className="grid grid-cols-2 gap-2">
+        <SelectField<ShapeKind>
+          id="image-shape"
+          label="Shape"
+          value={element.shape}
+          onChange={(shape) => update({ shape })}
+          options={shapeOptions}
+        />
         <SelectField<ImageFit>
           id="image-fit"
           label="Fit"
           value={element.fit}
           onChange={(fit) => update({ fit })}
           options={[
-            { value: "contain", label: "Contain" },
-            { value: "cover", label: "Cover" },
+            { value: "cover", label: "Cover", hint: "fills the shape" },
+            { value: "contain", label: "Contain", hint: "whole image" },
             { value: "fill", label: "Stretch" },
           ]}
         />
+      </div>
+      {element.shape === "rect" ? (
         <NumberField
           id="image-radius"
           label="Corner radius"
@@ -389,31 +354,37 @@ function ImageProperties({
           onChange={(radius) => update({ radius })}
           transaction={transaction}
         />
-      </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          The image is cropped to the {SHAPE_KIND_LABELS[element.shape].toLowerCase()}; nothing
+          spills outside the box.
+        </p>
+      )}
     </div>
   )
 }
 
-function RectProperties({ element, update, transaction }: SectionProps<RectElement>) {
+function ShapeProperties({ element, update, transaction }: SectionProps<ShapeElement>) {
   return (
     <div className="space-y-3">
-      <ColorField id="rect-fill" label="Fill" value={element.fill} allowEmpty onChange={(fill) => update({ fill })} transaction={transaction} />
-      <ColorField id="rect-stroke" label="Border color" value={element.stroke} allowEmpty onChange={(stroke) => update({ stroke })} transaction={transaction} />
+      <SelectField<ShapeKind>
+        id="shape-kind"
+        label="Shape"
+        value={element.kind}
+        onChange={(kind) => update({ kind })}
+        options={shapeOptions}
+      />
+      <ColorField id="shape-fill" label="Fill" value={element.fill} allowEmpty onChange={(fill) => update({ fill })} transaction={transaction} />
+      <ColorField id="shape-stroke" label="Border color" value={element.stroke} allowEmpty onChange={(stroke) => update({ stroke })} transaction={transaction} />
       <div className="grid grid-cols-2 gap-2">
-        <NumberField id="rect-stroke-width" label="Border width" min={0} value={element.strokeWidth} onChange={(strokeWidth) => update({ strokeWidth })} transaction={transaction} />
-        <NumberField id="rect-radius" label="Corner radius" min={0} value={element.radius} onChange={(radius) => update({ radius })} transaction={transaction} />
+        <NumberField id="shape-stroke-width" label="Border width" min={0} value={element.strokeWidth} onChange={(strokeWidth) => update({ strokeWidth })} transaction={transaction} />
+        {element.kind === "rect" ? (
+          <NumberField id="shape-radius" label="Corner radius" min={0} value={element.radius} onChange={(radius) => update({ radius })} transaction={transaction} />
+        ) : null}
       </div>
-    </div>
-  )
-}
-
-function EllipseProperties({ element, update, transaction }: SectionProps<EllipseElement>) {
-  return (
-    <div className="space-y-3">
-      <ColorField id="ellipse-fill" label="Fill" value={element.fill} allowEmpty onChange={(fill) => update({ fill })} transaction={transaction} />
-      <ColorField id="ellipse-stroke" label="Border color" value={element.stroke} allowEmpty onChange={(stroke) => update({ stroke })} transaction={transaction} />
-      <NumberField id="ellipse-stroke-width" label="Border width" min={0} value={element.strokeWidth} onChange={(strokeWidth) => update({ strokeWidth })} transaction={transaction} />
-      <p className="text-xs text-muted-foreground">Equal width and height make a circle.</p>
+      {element.kind === "ellipse" ? (
+        <p className="text-xs text-muted-foreground">Equal width and height make a circle.</p>
+      ) : null}
     </div>
   )
 }
@@ -563,12 +534,10 @@ function BarcodeProperties({ element, update, transaction }: SectionProps<Barcod
 
 export function ElementProperties({
   element,
-  templateId,
   update,
   transaction,
 }: {
   element: DesignElement
-  templateId: string
   update: (patch: ElementPatch) => void
   transaction: TransactionHandlers
 }) {
@@ -576,18 +545,9 @@ export function ElementProperties({
     case "text":
       return <TextProperties element={element} update={update} transaction={transaction} />
     case "image":
-      return (
-        <ImageProperties
-          element={element}
-          templateId={templateId}
-          update={update}
-          transaction={transaction}
-        />
-      )
-    case "rect":
-      return <RectProperties element={element} update={update} transaction={transaction} />
-    case "ellipse":
-      return <EllipseProperties element={element} update={update} transaction={transaction} />
+      return <ImageProperties element={element} update={update} transaction={transaction} />
+    case "shape":
+      return <ShapeProperties element={element} update={update} transaction={transaction} />
     case "line":
       return <LineProperties element={element} update={update} transaction={transaction} />
     case "icon":

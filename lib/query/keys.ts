@@ -25,4 +25,8 @@ export const queryKeys = {
     all: ["fonts"] as const,
     list: () => [...queryKeys.fonts.all, "list"] as const,
   },
+  assets: {
+    all: ["assets"] as const,
+    list: () => [...queryKeys.assets.all, "list"] as const,
+  },
 } as const

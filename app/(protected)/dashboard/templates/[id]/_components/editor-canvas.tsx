@@ -19,6 +19,7 @@ import {
   DesignPage,
   textStyle,
 } from "@/components/templates/design-renderer"
+import { fittedFontSize } from "@/components/templates/fitted-font-size"
 import {
   boxesIntersect,
   expandGroupSelection,
@@ -216,7 +217,7 @@ function EditableText({ element, onCommit, onDone }: EditableTextProps) {
       }}
       onFocus={(event) => event.currentTarget.select()}
       style={{
-        ...textStyle(element),
+        ...textStyle(element, fittedFontSize(element, value)),
         position: "absolute",
         inset: 0,
         width: "100%",

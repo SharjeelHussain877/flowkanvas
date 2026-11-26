@@ -17,7 +17,7 @@ function gCode(digit: number): string {
   return rCode(digit).split("").reverse().join("")
 }
 
-export function ean13CheckDigit(digits12: string): number {
+function ean13CheckDigit(digits12: string): number {
   let sum = 0
 
   for (let i = 0; i < 12; i += 1) {

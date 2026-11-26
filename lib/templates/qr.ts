@@ -51,7 +51,7 @@ export type QrLayout = {
   span: number
 }
 
-export const QR_QUIET_ZONE_MODULES = 2
+const QR_QUIET_ZONE_MODULES = 2
 
 /** Fits the code (plus quiet zone) centered inside a box. */
 export function layoutQr(matrix: QrMatrix, width: number, height: number): QrLayout {

@@ -5,7 +5,7 @@ export const TEMPLATE_VARIABLE_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/
 
 export const MIN_PAGE_SIZE = 20
 export const MAX_PAGE_SIZE = 14400
-export const MAX_ELEMENTS = 300
+const MAX_ELEMENTS = 300
 export const MAX_PAGES = 30
 export const DESIGN_VERSION = 2
 
@@ -25,22 +25,23 @@ export const STANDARD_FONT_FAMILIES = ["helvetica", "times", "courier"] as const
 export type StandardFontFamily = (typeof STANDARD_FONT_FAMILIES)[number]
 
 /** A standard PDF font id, or `custom:<family name>` for an uploaded font. */
-export const fontFamilySchema = z.string().min(1).max(120)
-export const textAlignSchema = z.enum(["left", "center", "right"])
-export const verticalAlignSchema = z.enum(["top", "middle", "bottom"])
-export const imageFitSchema = z.enum(["contain", "cover", "fill"])
-export const lineOrientationSchema = z.enum([
+const fontFamilySchema = z.string().min(1).max(120)
+const textAlignSchema = z.enum(["left", "center", "right"])
+const verticalAlignSchema = z.enum(["top", "middle", "bottom"])
+const imageFitSchema = z.enum(["contain", "cover", "fill"])
+const shapeKindSchema = z.enum(["rect", "ellipse", "triangle", "star", "diamond", "hexagon"])
+const lineOrientationSchema = z.enum([
   "horizontal",
   "vertical",
   "diagonal-down",
   "diagonal-up",
 ])
-export const qrErrorCorrectionSchema = z.enum(["L", "M", "Q", "H"])
-export const barcodeFormatSchema = z.enum(["code128", "ean13"])
-export const conditionOperatorSchema = z.enum(["set", "empty", "equals", "not_equals"])
+const qrErrorCorrectionSchema = z.enum(["L", "M", "Q", "H"])
+const barcodeFormatSchema = z.enum(["code128", "ean13"])
+const conditionOperatorSchema = z.enum(["set", "empty", "equals", "not_equals"])
 
 /** Show an element only when a payload variable matches. */
-export const visibilityConditionSchema = z.object({
+const visibilityConditionSchema = z.object({
   variable: variableName,
   operator: conditionOperatorSchema,
   value: z.string().max(500),
@@ -70,6 +71,8 @@ const textFields = {
   align: textAlignSchema,
   verticalAlign: verticalAlignSchema,
   lineHeight: finiteNumber.min(0.5).max(3),
+  /** Shrink the font until long values fit the box (never below 4px). */
+  autoFit: z.boolean().default(true),
 }
 
 const imageFields = {
@@ -77,31 +80,26 @@ const imageFields = {
   src: z.string().max(2000).nullable(),
   variable: variableName.nullable(),
   fit: imageFitSchema,
+  /** Mask the image to this shape; `radius` applies to `rect` only. */
+  shape: shapeKindSchema.default("rect"),
   radius: finiteNumber.min(0),
 }
 
-const rectFields = {
-  type: z.literal("rect"),
+const shapeFields = {
+  type: z.literal("shape"),
+  kind: shapeKindSchema,
   fill: optionalColor,
   stroke: optionalColor,
   strokeWidth: finiteNumber.min(0),
+  /** Corner radius for `rect`. */
   radius: finiteNumber.min(0),
 }
 
-export const textElementSchema = z.object({ ...elementBase, ...elementExtras, ...textFields })
-export const imageElementSchema = z.object({ ...elementBase, ...elementExtras, ...imageFields })
-export const rectElementSchema = z.object({ ...elementBase, ...elementExtras, ...rectFields })
+const textElementSchema = z.object({ ...elementBase, ...elementExtras, ...textFields })
+const imageElementSchema = z.object({ ...elementBase, ...elementExtras, ...imageFields })
+const shapeElementSchema = z.object({ ...elementBase, ...elementExtras, ...shapeFields })
 
-export const ellipseElementSchema = z.object({
-  ...elementBase,
-  ...elementExtras,
-  type: z.literal("ellipse"),
-  fill: optionalColor,
-  stroke: optionalColor,
-  strokeWidth: finiteNumber.min(0),
-})
-
-export const lineElementSchema = z.object({
+const lineElementSchema = z.object({
   ...elementBase,
   ...elementExtras,
   type: z.literal("line"),
@@ -112,7 +110,7 @@ export const lineElementSchema = z.object({
   dash: finiteNumber.min(0).max(100),
 })
 
-export const iconElementSchema = z.object({
+const iconElementSchema = z.object({
   ...elementBase,
   ...elementExtras,
   type: z.literal("icon"),
@@ -122,7 +120,7 @@ export const iconElementSchema = z.object({
   strokeWidth: finiteNumber.min(0.5).max(4),
 })
 
-export const qrCodeElementSchema = z.object({
+const qrCodeElementSchema = z.object({
   ...elementBase,
   ...elementExtras,
   type: z.literal("qrcode"),
@@ -133,7 +131,7 @@ export const qrCodeElementSchema = z.object({
   errorCorrection: qrErrorCorrectionSchema,
 })
 
-export const barcodeElementSchema = z.object({
+const barcodeElementSchema = z.object({
   ...elementBase,
   ...elementExtras,
   type: z.literal("barcode"),
@@ -144,18 +142,35 @@ export const barcodeElementSchema = z.object({
   showText: z.boolean(),
 })
 
-export const designElementSchema = z.discriminatedUnion("type", [
+const canonicalElementSchema = z.discriminatedUnion("type", [
   textElementSchema,
   imageElementSchema,
-  rectElementSchema,
-  ellipseElementSchema,
+  shapeElementSchema,
   lineElementSchema,
   iconElementSchema,
   qrCodeElementSchema,
   barcodeElementSchema,
 ])
 
-export const designPageSchema = z.object({
+/** Earlier designs stored rectangles and ellipses as their own element types. */
+function upgradeLegacyElement(value: unknown): unknown {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return value
+  }
+
+  const element = value as Record<string, unknown>
+
+  if (element.type === "rect" || element.type === "ellipse") {
+    const { type, ...rest } = element
+    return { ...rest, type: "shape", kind: type, radius: rest.radius ?? 0 }
+  }
+
+  return value
+}
+
+const designElementSchema = z.preprocess(upgradeLegacyElement, canonicalElementSchema)
+
+const designPageSchema = z.object({
   id: z.string().min(1).max(64),
   background: hexColor,
   elements: z.array(designElementSchema).max(MAX_ELEMENTS),
@@ -163,7 +178,7 @@ export const designPageSchema = z.object({
 
 const pageDimension = finiteNumber.min(MIN_PAGE_SIZE).max(MAX_PAGE_SIZE)
 
-export const templateDesignV2Schema = z.object({
+const templateDesignV2Schema = z.object({
   version: z.literal(DESIGN_VERSION),
   width: pageDimension,
   height: pageDimension,
@@ -178,11 +193,14 @@ const templateDesignV1Schema = z.object({
   background: hexColor,
   elements: z
     .array(
-      z.discriminatedUnion("type", [
-        z.object({ ...elementBase, ...textFields }),
-        z.object({ ...elementBase, ...imageFields }),
-        z.object({ ...elementBase, ...rectFields }),
-      ])
+      z.preprocess(
+        upgradeLegacyElement,
+        z.discriminatedUnion("type", [
+          z.object({ ...elementBase, ...textFields }),
+          z.object({ ...elementBase, ...imageFields }),
+          z.object({ ...elementBase, ...shapeFields }),
+        ])
+      )
     )
     .max(MAX_ELEMENTS),
 })
@@ -218,6 +236,7 @@ export type FontFamily = z.infer<typeof fontFamilySchema>
 export type TextAlign = z.infer<typeof textAlignSchema>
 export type VerticalAlign = z.infer<typeof verticalAlignSchema>
 export type ImageFit = z.infer<typeof imageFitSchema>
+export type ShapeKind = z.infer<typeof shapeKindSchema>
 export type LineOrientation = z.infer<typeof lineOrientationSchema>
 export type QrErrorCorrection = z.infer<typeof qrErrorCorrectionSchema>
 export type BarcodeFormat = z.infer<typeof barcodeFormatSchema>
@@ -225,13 +244,11 @@ export type ConditionOperator = z.infer<typeof conditionOperatorSchema>
 export type VisibilityCondition = z.infer<typeof visibilityConditionSchema>
 export type TextElement = z.infer<typeof textElementSchema>
 export type ImageElement = z.infer<typeof imageElementSchema>
-export type RectElement = z.infer<typeof rectElementSchema>
-export type EllipseElement = z.infer<typeof ellipseElementSchema>
+export type ShapeElement = z.infer<typeof shapeElementSchema>
 export type LineElement = z.infer<typeof lineElementSchema>
 export type IconElement = z.infer<typeof iconElementSchema>
 export type QrCodeElement = z.infer<typeof qrCodeElementSchema>
 export type BarcodeElement = z.infer<typeof barcodeElementSchema>
-export type DesignElement = z.infer<typeof designElementSchema>
-export type DesignElementType = DesignElement["type"]
+export type DesignElement = z.infer<typeof canonicalElementSchema>
 export type DesignPage = z.infer<typeof designPageSchema>
 export type TemplateDesign = z.infer<typeof templateDesignV2Schema>

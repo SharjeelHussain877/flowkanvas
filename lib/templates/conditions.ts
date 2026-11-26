@@ -24,7 +24,7 @@ function hasValue(
   return typeof value === "string" && value.trim() !== ""
 }
 
-export function evaluateCondition(
+function evaluateCondition(
   condition: VisibilityCondition,
   values: Record<string, string>,
   imageNames: ReadonlySet<string>

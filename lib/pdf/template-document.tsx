@@ -5,6 +5,7 @@ import {
   Line,
   Page,
   Path,
+  Polygon,
   Rect,
   Svg,
   Text,
@@ -19,31 +20,41 @@ import { renderPdfIconNodes } from "@/lib/pdf/svg-nodes"
 import { resolvePdfFont } from "@/lib/templates/fonts"
 import { iconCatalog } from "@/lib/templates/icon-catalog"
 import { createQrMatrix, layoutQr, qrPathData } from "@/lib/templates/qr"
+import { pointsAttribute, shapePolygon } from "@/lib/templates/shapes"
 import { interpolateText } from "@/lib/templates/variables"
 import type {
   BarcodeElement,
   DesignElement,
-  EllipseElement,
   IconElement,
   ImageElement,
   LineElement,
   QrCodeElement,
-  RectElement,
+  ShapeElement,
   TemplateDesign,
   TextElement,
 } from "@/schemas/templates/design"
+
+export type TextLayout = {
+  /** Auto-fitted font size. */
+  fontSize: number
+  /** Container height: the box height, or the text's natural height when it overflows. */
+  height: number
+}
 
 type TemplateDocumentProps = {
   /** Design with hidden (conditional) elements already removed. */
   design: TemplateDesign
   values: Record<string, string>
-  images: Map<string, ResolvedImage>
+  /** Resolved images by element id; shaped images are already cropped and masked. */
+  images: ReadonlyMap<string, ResolvedImage>
+  /** Measured text layouts by text element id. */
+  textLayouts: ReadonlyMap<string, TextLayout>
   title: string
   /** Custom font family ids registered with react-pdf. */
   customFamilies: ReadonlySet<string>
 }
 
-type RenderContext = Pick<TemplateDocumentProps, "values" | "images" | "customFamilies">
+type RenderContext = Omit<TemplateDocumentProps, "design" | "title">
 
 const VERTICAL_ALIGN: Record<TextElement["verticalAlign"], Style["justifyContent"]> = {
   top: "flex-start",
@@ -99,23 +110,16 @@ function ElementFrame({
   )
 }
 
-function TextBlock({
-  element,
-  values,
-  customFamilies,
-}: {
-  element: TextElement
-  values: Record<string, string>
-  customFamilies: ReadonlySet<string>
-}) {
-  const content = interpolateText(element.text, values)
-  const font = resolvePdfFont(element.fontFamily, element.bold, element.italic, customFamilies)
+function TextBlock({ element, context }: { element: TextElement; context: RenderContext }) {
+  const content = interpolateText(element.text, context.values)
+  const font = resolvePdfFont(element.fontFamily, element.bold, element.italic, context.customFamilies)
+  const layout = context.textLayouts.get(element.id)
 
   return (
     <View
       style={{
         ...innerBox(element),
-        overflow: "hidden",
+        height: layout?.height ?? element.height,
         display: "flex",
         flexDirection: "column",
         justifyContent: VERTICAL_ALIGN[element.verticalAlign],
@@ -127,7 +131,7 @@ function TextBlock({
             fontFamily: font.fontFamily,
             fontWeight: font.fontWeight,
             fontStyle: font.fontStyle,
-            fontSize: element.fontSize,
+            fontSize: layout?.fontSize ?? element.fontSize,
             lineHeight: element.lineHeight,
             color: element.color,
             textAlign: element.align,
@@ -140,16 +144,12 @@ function TextBlock({
   )
 }
 
-function ImageBlock({
-  element,
-  image,
-}: {
-  element: ImageElement
-  image: ResolvedImage | undefined
-}) {
+function ImageBlock({ element, image }: { element: ImageElement; image: ResolvedImage | undefined }) {
   if (!image) {
     return null
   }
+
+  const isRect = element.shape === "rect"
 
   return (
     /* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop */
@@ -157,51 +157,63 @@ function ImageBlock({
       src={{ data: image.data, format: image.format }}
       style={{
         ...innerBox(element),
-        objectFit: element.fit,
-        borderRadius: element.radius,
+        objectFit: isRect ? element.fit : "fill",
+        borderRadius: isRect ? element.radius : 0,
       }}
     />
   )
 }
 
-function RectBlock({ element }: { element: RectElement }) {
-  const style: Style = {
-    ...innerBox(element),
-    borderRadius: element.radius,
+function ShapeBlock({ element }: { element: ShapeElement }) {
+  const hasStroke = Boolean(element.stroke) && element.strokeWidth > 0
+  const strokeWidth = hasStroke ? element.strokeWidth : 0
+
+  if (element.kind === "rect") {
+    const style: Style = { ...innerBox(element), borderRadius: element.radius }
+
+    if (element.fill) {
+      style.backgroundColor = element.fill
+    }
+
+    if (hasStroke) {
+      style.borderWidth = element.strokeWidth
+      style.borderColor = element.stroke
+      style.borderStyle = "solid"
+    }
+
+    return <View style={style} />
   }
 
-  if (element.fill) {
-    style.backgroundColor = element.fill
+  const svgProps = {
+    width: element.width,
+    height: element.height,
+    viewBox: `0 0 ${element.width} ${element.height}`,
+  }
+  const paint = {
+    fill: element.fill || "none",
+    stroke: hasStroke ? element.stroke : "none",
+    strokeWidth,
   }
 
-  if (element.stroke && element.strokeWidth > 0) {
-    style.borderWidth = element.strokeWidth
-    style.borderColor = element.stroke
-    style.borderStyle = "solid"
+  if (element.kind === "ellipse") {
+    return (
+      <Svg {...svgProps}>
+        <Ellipse
+          cx={element.width / 2}
+          cy={element.height / 2}
+          rx={Math.max(0, element.width / 2 - strokeWidth / 2)}
+          ry={Math.max(0, element.height / 2 - strokeWidth / 2)}
+          {...paint}
+        />
+      </Svg>
+    )
   }
 
-  return <View style={style} />
-}
-
-function EllipseBlock({ element }: { element: EllipseElement }) {
-  const strokeWidth = element.stroke ? element.strokeWidth : 0
-  const inset = strokeWidth / 2
+  const polygon = shapePolygon(element.kind, element.width, element.height, strokeWidth / 2) ?? []
 
   return (
-    <Svg
-      width={element.width}
-      height={element.height}
-      viewBox={`0 0 ${element.width} ${element.height}`}
-    >
-      <Ellipse
-        cx={element.width / 2}
-        cy={element.height / 2}
-        rx={Math.max(0, element.width / 2 - inset)}
-        ry={Math.max(0, element.height / 2 - inset)}
-        fill={element.fill || "none"}
-        stroke={element.stroke || "none"}
-        strokeWidth={strokeWidth}
-      />
+    <Svg {...svgProps}>
+      <Polygon points={pointsAttribute(polygon)} strokeLinejoin="round" {...paint} />
     </Svg>
   )
 }
@@ -222,16 +234,10 @@ function lineEndpoints(element: LineElement) {
 }
 
 function LineBlock({ element }: { element: LineElement }) {
-  const points = lineEndpoints(element)
-
   return (
-    <Svg
-      width={element.width}
-      height={element.height}
-      viewBox={`0 0 ${element.width} ${element.height}`}
-    >
+    <Svg width={element.width} height={element.height} viewBox={`0 0 ${element.width} ${element.height}`}>
       <Line
-        {...points}
+        {...lineEndpoints(element)}
         stroke={element.stroke}
         strokeWidth={element.strokeWidth}
         strokeDasharray={element.dash > 0 ? `${element.dash} ${element.dash}` : undefined}
@@ -248,24 +254,13 @@ function IconBlock({ element }: { element: IconElement }) {
   }
 
   return (
-    <Svg
-      width={element.width}
-      height={element.height}
-      viewBox="0 0 24 24"
-      preserveAspectRatio="xMidYMid meet"
-    >
+    <Svg width={element.width} height={element.height} viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">
       {renderPdfIconNodes(node, element.color, element.strokeWidth)}
     </Svg>
   )
 }
 
-function QrCodeBlock({
-  element,
-  values,
-}: {
-  element: QrCodeElement
-  values: Record<string, string>
-}) {
+function QrCodeBlock({ element, values }: { element: QrCodeElement; values: Record<string, string> }) {
   const matrix = createQrMatrix(interpolateText(element.value, values), element.errorCorrection)
 
   if (!matrix) {
@@ -277,11 +272,7 @@ function QrCodeBlock({
   const bgY = (element.height - layout.span) / 2
 
   return (
-    <Svg
-      width={element.width}
-      height={element.height}
-      viewBox={`0 0 ${element.width} ${element.height}`}
-    >
+    <Svg width={element.width} height={element.height} viewBox={`0 0 ${element.width} ${element.height}`}>
       {element.background ? (
         <Rect x={bgX} y={bgY} width={layout.span} height={layout.span} fill={element.background} />
       ) : null}
@@ -290,13 +281,7 @@ function QrCodeBlock({
   )
 }
 
-function BarcodeBlock({
-  element,
-  values,
-}: {
-  element: BarcodeElement
-  values: Record<string, string>
-}) {
+function BarcodeBlock({ element, values }: { element: BarcodeElement; values: Record<string, string> }) {
   const encoding = encodeBarcode(element.format, interpolateText(element.value, values))
 
   if (!encoding) {
@@ -312,11 +297,7 @@ function BarcodeBlock({
 
   return (
     <View style={style}>
-      <Svg
-        width={element.width}
-        height={layout.barsHeight}
-        viewBox={`0 0 ${element.width} ${layout.barsHeight}`}
-      >
+      <Svg width={element.width} height={layout.barsHeight} viewBox={`0 0 ${element.width} ${layout.barsHeight}`}>
         <Path d={barcodePathData(encoding, layout)} fill={element.color} />
       </Svg>
       {element.showText ? (
@@ -342,19 +323,11 @@ function BarcodeBlock({
 function renderBlock(element: DesignElement, context: RenderContext): ReactNode {
   switch (element.type) {
     case "text":
-      return (
-        <TextBlock
-          element={element}
-          values={context.values}
-          customFamilies={context.customFamilies}
-        />
-      )
+      return <TextBlock element={element} context={context} />
     case "image":
       return <ImageBlock element={element} image={context.images.get(element.id)} />
-    case "rect":
-      return <RectBlock element={element} />
-    case "ellipse":
-      return <EllipseBlock element={element} />
+    case "shape":
+      return <ShapeBlock element={element} />
     case "line":
       return <LineBlock element={element} />
     case "icon":
@@ -368,15 +341,7 @@ function renderBlock(element: DesignElement, context: RenderContext): ReactNode 
   }
 }
 
-export function TemplateDocument({
-  design,
-  values,
-  images,
-  title,
-  customFamilies,
-}: TemplateDocumentProps) {
-  const context: RenderContext = { values, images, customFamilies }
-
+export function TemplateDocument({ design, title, ...context }: TemplateDocumentProps) {
   return (
     <Document title={title} producer="flowkanvas" creator="flowkanvas">
       {design.pages.map((page) => (

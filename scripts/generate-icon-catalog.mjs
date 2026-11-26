@@ -72,8 +72,6 @@ ${lines.join("\n")}
 }
 
 export const iconNames = Object.keys(iconCatalog)
-
-export const DEFAULT_ICON_NAME = ${JSON.stringify(entries[0]?.[0] ?? "star")}
 `
 
 await writeFile(path.join(root, "lib", "templates", "icon-catalog.ts"), output)

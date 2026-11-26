@@ -1,12 +1,11 @@
 import {
   createBarcodeElement,
-  createEllipseElement,
   createEmptyDesign,
   createIconElement,
   createImageElement,
   createLineElement,
   createQrCodeElement,
-  createRectElement,
+  createShapeElement,
   createTextElement,
 } from "@/lib/templates/element-defaults"
 import { createGroupId } from "@/lib/templates/ids"
@@ -58,10 +57,10 @@ function startDesign(width: number, height: number, background = WHITE) {
 function buildCertificate(): TemplateDesign {
   const { design, add, text } = startDesign(842, 595)
 
-  add(createRectElement(design, { ...box(0, 0, 842, 14), fill: TEAL, radius: 0 }))
-  add(createRectElement(design, { ...box(0, 581, 842, 14), fill: NAVY, radius: 0 }))
+  add(createShapeElement(design, "rect", { ...box(0, 0, 842, 14), fill: TEAL, radius: 0 }))
+  add(createShapeElement(design, "rect", { ...box(0, 581, 842, 14), fill: NAVY, radius: 0 }))
   add(
-    createRectElement(design, {
+    createShapeElement(design, "rect", {
       ...box(32, 36, 778, 523),
       fill: "",
       stroke: NAVY,
@@ -116,7 +115,7 @@ function buildCertificate(): TemplateDesign {
 function buildEventTicket(): TemplateDesign {
   const { design, add, text } = startDesign(576, 216)
 
-  add(createRectElement(design, { ...box(0, 0, 176, 216), fill: NAVY, radius: 0 }))
+  add(createShapeElement(design, "rect", { ...box(0, 0, 176, 216), fill: NAVY, radius: 0 }))
   add(
     createQrCodeElement(design, {
       ...box(38, 34, 100, 100),
@@ -154,7 +153,7 @@ function buildEventTicket(): TemplateDesign {
   const vipGroup = createGroupId()
   const vipCondition = { variable: "vip", operator: "set" as const, value: "" }
   add(
-    createRectElement(design, {
+    createShapeElement(design, "rect", {
       ...box(488, 166, 64, 26),
       fill: "#f5b942",
       radius: 13,
@@ -178,14 +177,14 @@ function buildEventTicket(): TemplateDesign {
 function buildIdCard(): TemplateDesign {
   const { design, add, text } = startDesign(153, 243)
 
-  add(createRectElement(design, { ...box(0, 0, 153, 72), fill: TEAL, radius: 0 }))
+  add(createShapeElement(design, "rect", { ...box(0, 0, 153, 72), fill: TEAL, radius: 0 }))
   text("{{company_name}}", box(8, 8, 137, 14), {
     fontSize: 9,
     bold: true,
     align: "center",
     color: WHITE,
   })
-  add(createRectElement(design, { ...box(42, 28, 69, 84), fill: WHITE, radius: 8 }))
+  add(createShapeElement(design, "rect", { ...box(42, 28, 69, 84), fill: WHITE, radius: 8 }))
   add(
     createImageElement(design, {
       ...box(44, 30, 65, 80),
@@ -225,7 +224,7 @@ function buildIdCard(): TemplateDesign {
 function buildGiftVoucher(): TemplateDesign {
   const { design, add, text } = startDesign(504, 216, "#faf6f0")
 
-  add(createEllipseElement(design, { ...box(-40, 150, 120, 120), fill: MIST, stroke: "", strokeWidth: 0 }))
+  add(createShapeElement(design, "ellipse", { ...box(-40, 150, 120, 120), fill: MIST, stroke: "", strokeWidth: 0 }))
   text("GIFT VOUCHER", box(28, 26, 260, 32), {
     fontFamily: "times",
     fontSize: 24,
@@ -245,7 +244,7 @@ function buildGiftVoucher(): TemplateDesign {
       dash: 5,
     })
   )
-  add(createRectElement(design, { ...box(320, 20, 164, 176), fill: NAVY, radius: 14 }))
+  add(createShapeElement(design, "rect", { ...box(320, 20, 164, 176), fill: NAVY, radius: 14 }))
   add(createIconElement(design, { ...box(374, 42, 56, 56), name: "gift", color: WHITE, strokeWidth: 1.5 }))
   text("Code", box(320, 112, 164, 14), { fontSize: 9, align: "center", color: MIST })
   text("{{voucher_code}}", box(320, 130, 164, 22), {
@@ -268,7 +267,7 @@ function buildProductLabel(): TemplateDesign {
   const { design, add, text } = startDesign(288, 180)
 
   add(
-    createRectElement(design, {
+    createShapeElement(design, "rect", {
       ...box(8, 8, 272, 164),
       fill: "",
       stroke: NAVY,
@@ -300,7 +299,7 @@ function buildProductLabel(): TemplateDesign {
 function buildOfferLetter(): TemplateDesign {
   const { design, add, text } = startDesign(595, 842)
 
-  add(createRectElement(design, { ...box(0, 0, 595, 8), fill: TEAL, radius: 0 }))
+  add(createShapeElement(design, "rect", { ...box(0, 0, 595, 8), fill: TEAL, radius: 0 }))
   text("{{company_name}}", box(56, 52, 300, 28), { fontSize: 20, bold: true, color: NAVY })
   text("{{company_address}}", box(356, 54, 183, 40), { fontSize: 9, align: "right", color: SLATE, lineHeight: 1.4 })
   add(createLineElement(design, { ...box(56, 104, 483, 2), stroke: MIST, strokeWidth: 1 }))
@@ -334,7 +333,7 @@ function buildOfferLetter(): TemplateDesign {
 function buildBusinessCard(): TemplateDesign {
   const { design, add, text } = startDesign(252, 144)
 
-  add(createRectElement(design, { ...box(0, 0, 10, 144), fill: TEAL, radius: 0 }))
+  add(createShapeElement(design, "rect", { ...box(0, 0, 10, 144), fill: TEAL, radius: 0 }))
   text("{{full_name}}", box(26, 24, 130, 20), { fontSize: 14, bold: true, color: NAVY })
   text("{{job_title}}", box(26, 44, 130, 14), { fontSize: 9, color: SLATE })
   text("{{company_name}}", box(150, 26, 88, 14), { fontSize: 9, bold: true, align: "right", color: TEAL })

@@ -59,7 +59,6 @@ type EditorPropertiesPanelProps = {
   design: TemplateDesign
   page: DesignPage
   elements: DesignElement[]
-  templateId: string
   dispatch: Dispatch<EditorAction>
 }
 
@@ -76,7 +75,6 @@ export function EditorPropertiesPanel({
   design,
   page,
   elements,
-  templateId,
   dispatch,
 }: EditorPropertiesPanelProps) {
   const transaction: TransactionHandlers = {
@@ -153,7 +151,6 @@ export function EditorPropertiesPanel({
         {single ? (
           <ElementProperties
             element={single}
-            templateId={templateId}
             update={(patch) => dispatch({ type: "update-element", id: single.id, patch })}
             transaction={transaction}
           />
@@ -427,6 +424,8 @@ function DocumentProperties({
       <PanelSection title="Tips">
         <ul className="list-disc space-y-1 ps-4 text-xs text-muted-foreground">
           <li>Click an element to edit it. Double-click text to type. Drag on empty space to select several.</li>
+          <li>Open Assets in the left rail to upload images and fonts once, then click an image to place it.</li>
+          <li>Text shrinks to fit its box by default, so long names never get cut off.</li>
           <li>
             Write <code>{"{{name}}"}</code> inside text, QR codes or barcodes to make it a variable.
           </li>

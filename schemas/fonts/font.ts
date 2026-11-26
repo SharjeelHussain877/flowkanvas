@@ -1,13 +1,7 @@
-import { z } from "zod"
-
 export const MAX_FONT_BYTES = 5 * 1024 * 1024
-export const FONT_FILE_EXTENSIONS = [".ttf", ".otf"] as const
 
-export const fontWeightSchema = z.union([z.literal(400), z.literal(700)])
-export const fontStyleSchema = z.enum(["normal", "italic"])
-
-export type FontWeight = z.infer<typeof fontWeightSchema>
-export type FontStyle = z.infer<typeof fontStyleSchema>
+export type FontWeight = 400 | 700
+export type FontStyle = "normal" | "italic"
 
 /** One uploaded font file. Files that share a `name` form a family (regular / bold / italic). */
 export type FontRecord = {
